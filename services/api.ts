@@ -1,5 +1,20 @@
 const BASE_URL = 'https://mon-go.ru';
 
+export interface POI {
+  id: number;
+  name: string;
+  name_ru?: string;
+  lat: number;
+  lng: number;
+  category: 'sight' | 'food' | 'accommodation' | 'transport' | 'safety' | 'camp' | 'user';
+  icon?: string;
+  description?: string;
+  phone?: string;
+  url?: string;
+  hours?: string;
+  price?: string;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: { 'Content-Type': 'application/json' },
@@ -26,6 +41,9 @@ export const api = {
 
   tts: (text: string, lang = 'mn') =>
     `${BASE_URL}/api/tts?text=${encodeURIComponent(text)}&lang=${lang}`,
+
+  getPOI: (category = 'all') =>
+    request<POI[]>(`/api/poi?category=${category}`),
 
   interpret: (audioBase64: string) =>
     request<{
