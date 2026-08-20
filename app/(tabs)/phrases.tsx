@@ -2,10 +2,12 @@ import { useState, useCallback } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, Pressable, Platform, ActivityIndicator,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { PHRASE_SECTIONS, Phrase } from '@/constants/phrases';
 import { api } from '@/services/api';
 
 export default function PhrasesScreen() {
+  const router = useRouter();
   const [expanded, setExpanded] = useState<Set<number>>(new Set([0]));
   const [speaking, setSpeaking] = useState<string | null>(null);
 
@@ -51,7 +53,12 @@ export default function PhrasesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Монгольские фразы</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerTitle}>Монгольские фразы</Text>
+          <Pressable style={styles.quizBtn} onPress={() => router.push('/quiz')}>
+            <Text style={styles.quizBtnText}>🎯 Квиз</Text>
+          </Pressable>
+        </View>
         <Text style={styles.headerSub}>{PHRASE_SECTIONS.length} разделов · нажми 🔊 для произношения</Text>
       </View>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -114,8 +121,11 @@ function PhraseRow({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
   header: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
   headerTitle: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
   headerSub: { fontSize: 12, color: '#888', marginTop: 2 },
+  quizBtn: { backgroundColor: '#f59e0b', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  quizBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
   scroll: { flex: 1 },
   section: { marginTop: 8, marginHorizontal: 12, borderRadius: 12, backgroundColor: '#fff', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
