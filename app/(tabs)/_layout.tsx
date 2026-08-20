@@ -68,7 +68,7 @@ export default function TabLayout() {
   );
 }
 
-function TabIcon({ emoji, color }: { emoji: string; color: string }) {
+function TabIcon({ emoji }: { emoji: string; color?: unknown }) {
   const { Text } = require('react-native');
   return <Text style={{ fontSize: 22 }}>{emoji}</Text>;
 }

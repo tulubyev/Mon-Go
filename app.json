@@ -7,17 +7,32 @@
     "icon": "./assets/images/icon.png",
     "scheme": "mongo",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.tulubyev.mongo",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Камера нужна для распознавания текста на монгольском языке (OCR переводчик)",
+        "NSMicrophoneUsageDescription": "Микрофон нужен для живого переводчика — запись речи на монгольском",
+        "NSLocationWhenInUseUsageDescription": "Местоположение нужно для отображения вашей позиции на карте Монголии",
+        "NSPhotoLibraryUsageDescription": "Доступ к галерее нужен для выбора фото для OCR переводчика"
+      }
     },
     "android": {
+      "package": "com.tulubyev.mongo",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       },
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -27,6 +42,25 @@
     "plugins": [
       "expo-router",
       "expo-location",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Камера нужна для распознавания текста на монгольском языке"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Доступ к галерее нужен для выбора фото для OCR переводчика",
+          "cameraPermission": "Камера нужна для распознавания текста на монгольском языке"
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Микрофон нужен для живого переводчика — запись речи на монгольском"
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -38,6 +72,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "com.tulubyev.mongo"
+      }
     }
   }
 }

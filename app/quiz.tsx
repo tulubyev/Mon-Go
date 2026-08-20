@@ -10,7 +10,9 @@ const ALL_PHRASES: (Phrase & { section: string })[] = PHRASE_SECTIONS.flatMap(s 
   s.phrases.map(p => ({ ...p, section: s.title }))
 );
 
-function pickQuestion(): { phrase: Phrase; options: string[]; correctIndex: number } {
+type PhraseWithSection = Phrase & { section: string };
+
+function pickQuestion(): { phrase: PhraseWithSection; options: string[]; correctIndex: number } {
   const idx = Math.floor(Math.random() * ALL_PHRASES.length);
   const phrase = ALL_PHRASES[idx];
 

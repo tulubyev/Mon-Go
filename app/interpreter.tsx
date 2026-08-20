@@ -136,7 +136,7 @@ export default function InterpreterScreen() {
               onPressIn={stage === 'idle' ? startRecording : undefined}
               onPressOut={stage === 'recording' ? stopAndProcess : undefined}
               onPress={stage === 'result' ? reset : undefined}
-              disabled={stage === 'processing'}
+              disabled={false}
             >
               <Text style={styles.micIcon}>
                 {stage === 'result' ? '🔄' : '🎙️'}
