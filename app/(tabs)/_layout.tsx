@@ -54,6 +54,16 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="ads"
+        options={{
+          title: 'Объявления',
+          tabBarLabel: 'Объявл.',
+          tabBarIcon: ({ color }) => (
+            <TabIcon emoji="📋" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
