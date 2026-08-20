@@ -2,7 +2,7 @@ import {
   StyleSheet, FlatList, TextInput, Pressable, Text, View,
   KeyboardAvoidingView, Platform, SafeAreaView, ActivityIndicator,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '@/services/api';
 
@@ -15,6 +15,7 @@ interface Message {
 const USER_ID = 'mobile_' + Math.random().toString(36).slice(2, 10);
 
 export default function ChatScreen() {
+  const router = useRouter();
   const params = useLocalSearchParams<{ question?: string; label?: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -70,6 +71,9 @@ export default function ChatScreen() {
             <Text style={styles.emptyEmoji}>💬</Text>
             <Text style={styles.emptyTitle}>AI Чат о Монголии</Text>
             <Text style={styles.emptySub}>Спрашивайте о транспорте, жилье, языке, безопасности и всём остальном</Text>
+            <Pressable style={styles.interpreterBtn} onPress={() => router.push('/interpreter')}>
+              <Text style={styles.interpreterBtnText}>🎙️ Живой переводчик</Text>
+            </Pressable>
           </View>
         )}
         <FlatList
@@ -119,6 +123,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   list: { padding: 12, gap: 8, flexGrow: 1 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 },
+  interpreterBtn: { marginTop: 8, backgroundColor: '#0f172a', paddingHorizontal: 20, paddingVertical: 11, borderRadius: 14 },
+  interpreterBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   emptyEmoji: { fontSize: 48 },
   emptyTitle: { fontSize: 18, fontWeight: '700', textAlign: 'center' },
   emptySub: { fontSize: 14, color: '#888', textAlign: 'center', lineHeight: 20 },

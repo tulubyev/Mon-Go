@@ -45,6 +45,12 @@ export const api = {
   getPOI: (category = 'all') =>
     request<POI[]>(`/api/poi?category=${category}`),
 
+  stt: (audioBase64: string, lang = 'mn', mime = 'audio/m4a') =>
+    request<{ text: string }>('/api/stt', {
+      method: 'POST',
+      body: JSON.stringify({ audio: audioBase64, lang, mime }),
+    }),
+
   ocr: (imageBase64: string, to = 'ru') =>
     request<{ original: string; translation: string }>('/api/ocr', {
       method: 'POST',
