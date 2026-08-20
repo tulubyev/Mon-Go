@@ -1,6 +1,4 @@
-const BASE_URL = __DEV__
-  ? 'http://localhost:3001'
-  : 'https://mon-go.ru';
+const BASE_URL = 'https://mon-go.ru';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
@@ -14,10 +12,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 export const api = {
   getStats: () => request<{ totalQuestions: number }>('/api/stats'),
 
-  ask: (question: string, userId: string) =>
-    request<{ answer: string; cached: boolean }>('/api/ask', {
+  ask: (message: string, userId: string, topic?: string) =>
+    request<{ success: boolean; response: string; locations?: any[] }>('/api/mongolia/chat', {
       method: 'POST',
-      body: JSON.stringify({ question, userId }),
+      body: JSON.stringify({ message, userId, topic }),
     }),
 
   translate: (text: string, from: string, to: string) =>
