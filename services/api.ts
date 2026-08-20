@@ -57,13 +57,12 @@ export const api = {
       body: JSON.stringify({ image: imageBase64, to }),
     }),
 
-  interpret: (audioBase64: string) =>
+  interpret: (text: string, context?: string) =>
     request<{
-      original: string;
       translation: string;
       responses: Array<{ mn: string; ru: string }>;
     }>('/api/interpret', {
       method: 'POST',
-      body: JSON.stringify({ audio: audioBase64 }),
+      body: JSON.stringify({ text, context }),
     }),
 };
