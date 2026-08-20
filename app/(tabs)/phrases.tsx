@@ -55,9 +55,14 @@ export default function PhrasesScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.headerTitle}>Монгольские фразы</Text>
-          <Pressable style={styles.quizBtn} onPress={() => router.push('/quiz')}>
-            <Text style={styles.quizBtnText}>🎯 Квиз</Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable style={styles.quizBtn} onPress={() => router.push('/quiz')}>
+              <Text style={styles.quizBtnText}>🎯 Квиз</Text>
+            </Pressable>
+            <Pressable style={styles.ocrBtn} onPress={() => router.push('/ocr')}>
+              <Text style={styles.ocrBtnText}>📷 OCR</Text>
+            </Pressable>
+          </View>
         </View>
         <Text style={styles.headerSub}>{PHRASE_SECTIONS.length} разделов · нажми 🔊 для произношения</Text>
       </View>
@@ -124,8 +129,11 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
   headerTitle: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
   headerSub: { fontSize: 12, color: '#888', marginTop: 2 },
+  headerActions: { flexDirection: 'row', gap: 6 },
   quizBtn: { backgroundColor: '#f59e0b', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
   quizBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  ocrBtn: { backgroundColor: '#7c3aed', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  ocrBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
   scroll: { flex: 1 },
   section: { marginTop: 8, marginHorizontal: 12, borderRadius: 12, backgroundColor: '#fff', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },

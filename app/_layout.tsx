@@ -51,6 +51,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         <Stack.Screen name="quiz" options={{ title: 'Аудио-квиз', headerBackTitle: 'Назад' }} />
+        <Stack.Screen name="ocr" options={{ title: 'OCR Переводчик', headerBackTitle: 'Назад' }} />
       </Stack>
     </ThemeProvider>
   );
