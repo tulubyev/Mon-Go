@@ -56,3 +56,23 @@ index b6fccda..1fe6546 100644
  #import <ExpoModulesCore/EXAppLifecycleService.h>
  #import <ExpoModulesCore/EXFileSystemInterface.h>
  #import <ExpoModulesCore/EXPermissionsInterface.h>
+diff --git a/node_modules/expo-av/ios/EXAV/Video/EXVideoView.h b/node_modules/expo-av/ios/EXAV/Video/EXVideoView.h
+index f7ff4ee..b911eb9 100644
+--- a/node_modules/expo-av/ios/EXAV/Video/EXVideoView.h
++++ b/node_modules/expo-av/ios/EXAV/Video/EXVideoView.h
+@@ -1,7 +1,14 @@
+ // Copyright 2015-present 650 Industries. All rights reserved.
+ 
+ #import <ExpoModulesCore/EXModuleRegistry.h>
+-#import <ExpoModulesCore/EXLegacyExpoViewProtocol.h>
++// PATCHED - inlined EXLegacyExpoViewProtocol
++#ifndef EXLegacyExpoViewProtocol_h
++#define EXLegacyExpoViewProtocol_h
++@protocol EXLegacyExpoViewProtocol <NSObject>
++@optional
++- (void)setOnError:(EXDirectEventBlock)onError;
++@end
++#endif
+ 
+ #import <EXAV/EXAVObject.h>
+ #import <EXAV/EXVideoPlayerViewControllerDelegate.h>
