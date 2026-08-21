@@ -76,3 +76,16 @@ index f7ff4ee..b911eb9 100644
  
  #import <EXAV/EXAVObject.h>
  #import <EXAV/EXVideoPlayerViewControllerDelegate.h>
+diff --git a/node_modules/expo-av/ios/EXAV/Video/VideoViewModule.swift b/node_modules/expo-av/ios/EXAV/Video/VideoViewModule.swift
+index 4ddc324..9f8cd0d 100644
+--- a/node_modules/expo-av/ios/EXAV/Video/VideoViewModule.swift
++++ b/node_modules/expo-av/ios/EXAV/Video/VideoViewModule.swift
+@@ -14,7 +14,7 @@ public final class VideoViewModule: Module {
+ 
+     AsyncFunction("setFullscreen") { (viewTag: Int, value: Bool, promise: Promise) in
+       self.runBlockForView(viewTag) { view in
+-        view.contentView.setFullscreen(value, resolver: promise.resolver, rejecter: promise.legacyRejecter)
++        view.contentView.setFullscreen(value, resolver: promise.legacyResolver, rejecter: promise.legacyRejecter)
+       }
+     }
+ 
