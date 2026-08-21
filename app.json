@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "mongo",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.tulubyev.mongo",
@@ -16,7 +16,8 @@
         "NSCameraUsageDescription": "Камера нужна для распознавания текста на монгольском языке (OCR переводчик)",
         "NSMicrophoneUsageDescription": "Микрофон нужен для живого переводчика — запись речи на монгольском",
         "NSLocationWhenInUseUsageDescription": "Местоположение нужно для отображения вашей позиции на карте Монголии",
-        "NSPhotoLibraryUsageDescription": "Доступ к галерее нужен для выбора фото для OCR переводчика"
+        "NSPhotoLibraryUsageDescription": "Доступ к галерее нужен для выбора фото для OCR переводчика",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -27,11 +28,12 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "READ_EXTERNAL_STORAGE"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
     },
     "web": {
@@ -42,12 +44,7 @@
     "plugins": [
       "expo-router",
       "expo-location",
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Камера нужна для распознавания текста на монгольском языке"
-        }
-      ],
+      "@maplibre/maplibre-react-native",
       [
         "expo-image-picker",
         {
@@ -68,14 +65,23 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "com.tulubyev.mongo"
+        "projectId": "2eb411cf-cd12-4959-9e37-fed0e7f2755f"
       }
     }
   }

@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 14.0.0"
+    "version": ">= 14.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -8,7 +9,8 @@
       "distribution": "internal",
       "ios": {
         "simulator": true
-      }
+      },
+      "credentialsSource": "local"
     },
     "preview": {
       "distribution": "internal",
@@ -32,9 +34,7 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "alt@in2sys.fr",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "appleId": "alt@in2sys.fr"
       },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
