@@ -1,0 +1,58 @@
+diff --git a/node_modules/expo-av/ios/EXAV/EXAV.h b/node_modules/expo-av/ios/EXAV/EXAV.h
+index 42a79e1..4948956 100644
+--- a/node_modules/expo-av/ios/EXAV/EXAV.h
++++ b/node_modules/expo-av/ios/EXAV/EXAV.h
+@@ -7,7 +7,26 @@
+ #import <ExpoModulesCore/EXModuleRegistryConsumer.h>
+ #import <ExpoModulesCore/EXAppLifecycleListener.h>
+ #import <ExpoModulesCore/EXExportedModule.h>
+-#import <ExpoModulesCore/EXEventEmitter.h>
++// POSTINSTALL_PATCHED
++
++#ifndef EXEventEmitter_h
++#define EXEventEmitter_h
++@protocol EXEventEmitter <NSObject>
++- (NSArray<NSString *> *)supportedEvents;
++- (void)startObserving;
++- (void)stopObserving;
++@optional
++- (NSDictionary *)constantsToExport;
++@end
++#endif
++
++#ifndef EXEventEmitterService_h
++#define EXEventEmitterService_h
++@protocol EXEventEmitterService <NSObject>
++- (void)sendEventWithName:(NSString *)name body:(id)body;
++@end
++#endif
++
+ #import <EXAV/EXAVObject.h>
+ 
+ typedef NS_OPTIONS(NSUInteger, EXAudioInterruptionMode)
+diff --git a/node_modules/expo-av/ios/EXAV/EXAV.m b/node_modules/expo-av/ios/EXAV/EXAV.m
+index 7153d28..d078212 100644
+--- a/node_modules/expo-av/ios/EXAV/EXAV.m
++++ b/node_modules/expo-av/ios/EXAV/EXAV.m
+@@ -3,7 +3,7 @@
+ #import <AVFoundation/AVFoundation.h>
+ 
+ #import <ExpoModulesCore/EXUIManager.h>
+-#import <ExpoModulesCore/EXEventEmitterService.h>
++// POSTINSTALL_PATCHED — EXEventEmitterService.h inlined in EXAV.h
+ #import <ExpoModulesCore/EXAppLifecycleService.h>
+ #import <ExpoModulesCore/EXFileSystemInterface.h>
+ #import <ExpoModulesCore/EXPermissionsInterface.h>
+diff --git a/node_modules/expo-av/ios/EXAV/EXAVTV.m b/node_modules/expo-av/ios/EXAV/EXAVTV.m
+index b6fccda..1fe6546 100644
+--- a/node_modules/expo-av/ios/EXAV/EXAVTV.m
++++ b/node_modules/expo-av/ios/EXAV/EXAVTV.m
+@@ -3,7 +3,7 @@
+ #import <AVFoundation/AVFoundation.h>
+ 
+ #import <ExpoModulesCore/EXUIManager.h>
+-#import <ExpoModulesCore/EXEventEmitterService.h>
++// POSTINSTALL_PATCHED
+ #import <ExpoModulesCore/EXAppLifecycleService.h>
+ #import <ExpoModulesCore/EXFileSystemInterface.h>
+ #import <ExpoModulesCore/EXPermissionsInterface.h>

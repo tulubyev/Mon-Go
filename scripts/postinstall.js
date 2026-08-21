@@ -50,16 +50,26 @@ content = content
 fs.writeFileSync(EXAV_H, content);
 console.log('[postinstall] Patched EXAV.h — inlined EXEventEmitter protocol');
 
-// Also patch EXAV.m which imports EXEventEmitterService.h
-const EXAV_M = path.join(__dirname, '../node_modules/expo-av/ios/EXAV/EXAV.m');
-if (fs.existsSync(EXAV_M)) {
-  let m = fs.readFileSync(EXAV_M, 'utf8');
-  if (!m.includes('POSTINSTALL_PATCHED')) {
-    m = m.replace(
+// Patch .m files that import the missing headers
+const M_FILES = [
+  '../node_modules/expo-av/ios/EXAV/EXAV.m',
+  '../node_modules/expo-av/ios/EXAV/EXAVTV.m',
+];
+
+for (const rel of M_FILES) {
+  const p = path.join(__dirname, rel);
+  if (!fs.existsSync(p)) continue;
+  let m = fs.readFileSync(p, 'utf8');
+  if (m.includes('POSTINSTALL_PATCHED')) continue;
+  const before = m;
+  m = m
+    .replace('#import <ExpoModulesCore/EXEventEmitter.h>\n', '')
+    .replace(
       '#import <ExpoModulesCore/EXEventEmitterService.h>\n',
-      '// POSTINSTALL_PATCHED — EXEventEmitterService.h inlined in EXAV.h\n'
+      '// POSTINSTALL_PATCHED — protocols inlined in EXAV.h\n'
     );
-    fs.writeFileSync(EXAV_M, m);
-    console.log('[postinstall] Patched EXAV.m — removed EXEventEmitterService.h import');
+  if (m !== before) {
+    fs.writeFileSync(p, m);
+    console.log(`[postinstall] Patched ${path.basename(p)}`);
   }
 }
