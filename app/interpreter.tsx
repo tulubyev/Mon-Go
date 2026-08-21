@@ -29,7 +29,7 @@ export default function InterpreterScreen() {
   const [responses, setResponses] = useState<Response[]>([]);
   const [fullscreen, setFullscreen] = useState<Response | null>(null);
   const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
-  const recordingRef = useRef<any>(null);
+  const recorderRef = useRef<any>(null);
 
   const startRecording = useCallback(async () => {
     if (Platform.OS === 'web') {
@@ -37,13 +37,17 @@ export default function InterpreterScreen() {
       return;
     }
     try {
-      const { Audio } = require('expo-av');
-      await Audio.requestPermissionsAsync();
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      await recording.startAsync();
-      recordingRef.current = recording;
+      const { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync } = require('expo-audio');
+      const { granted } = await requestRecordingPermissionsAsync();
+      if (!granted) {
+        Alert.alert('Разрешение', 'Нет доступа к микрофону');
+        return;
+      }
+      const AudioModule = require('expo-audio').default || require('expo-audio');
+      const recorder = new AudioModule.AudioRecorder(RecordingPresets.HIGH_QUALITY);
+      recorderRef.current = recorder;
+      await recorder.prepareToRecordAsync();
+      recorder.record();
       setStage('recording');
     } catch (err: any) {
       Alert.alert('Ошибка', 'Не удалось запустить запись: ' + err.message);
@@ -51,40 +55,35 @@ export default function InterpreterScreen() {
   }, []);
 
   const stopAndProcess = useCallback(async () => {
-    if (!recordingRef.current) return;
+    const recorder = recorderRef.current;
+    if (!recorder) return;
     setStage('processing');
     setTranscript('');
     setTranslation('');
     setResponses([]);
     try {
-      const { Audio } = require('expo-av');
-      const FileSystem = require('expo-file-system');
-      const recording = recordingRef.current;
-      recordingRef.current = null;
-      await recording.stopAndUnloadAsync();
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
-      const uri = recording.getURI();
+      await recorder.stop();
+      const uri = recorder.uri;
+      recorderRef.current = null;
+
       if (!uri) throw new Error('No audio URI');
 
+      const FileSystem = require('expo-file-system');
       const base64 = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-      // FileSystem cleanup
       await FileSystem.deleteAsync(uri, { idempotent: true });
 
-      // STT
       const sttResult = await api.stt(base64, 'mn', 'audio/m4a');
       const text = sttResult.text?.trim();
       if (!text) throw new Error('Речь не распознана');
       setTranscript(text);
 
-      // Interpret
       const interp = await api.interpret(text);
       setTranslation(interp.translation || '');
       setResponses(interp.responses || []);
       setStage('result');
 
-      // Auto-speak first response
       if (interp.responses?.[0]) {
         await speak(interp.responses[0].mn);
       }
@@ -109,7 +108,6 @@ export default function InterpreterScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backBtnText}>← Назад</Text>
@@ -119,7 +117,6 @@ export default function InterpreterScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Record area */}
         <View style={styles.recordArea}>
           <Text style={styles.hint}>
             {stage === 'idle' && 'Нажми и держи — говори по-монгольски\nили слушай монгола'}
@@ -149,7 +146,6 @@ export default function InterpreterScreen() {
             </Pressable>
           )}
 
-          {/* Web placeholder */}
           {Platform.OS === 'web' && stage === 'idle' && (
             <View style={styles.webNote}>
               <Text style={styles.webNoteText}>🎙️ Запись доступна только в мобильном приложении</Text>
@@ -157,7 +153,6 @@ export default function InterpreterScreen() {
           )}
         </View>
 
-        {/* Translation */}
         {translation !== '' && (
           <View style={styles.translationBox}>
             <Text style={styles.translationLabel}>Перевод</Text>
@@ -165,7 +160,6 @@ export default function InterpreterScreen() {
           </View>
         )}
 
-        {/* Response variants */}
         {responses.length > 0 && (
           <View style={styles.responsesSection}>
             <Text style={styles.responsesTitle}>Варианты ответа</Text>
@@ -186,10 +180,7 @@ export default function InterpreterScreen() {
                       : <Text style={styles.speakBtnIcon}>🔊</Text>
                     }
                   </Pressable>
-                  <Pressable
-                    style={styles.showBtn}
-                    onPress={() => setFullscreen(resp)}
-                  >
+                  <Pressable style={styles.showBtn} onPress={() => setFullscreen(resp)}>
                     <Text style={styles.showBtnIcon}>📱</Text>
                   </Pressable>
                 </View>
@@ -199,7 +190,6 @@ export default function InterpreterScreen() {
         )}
       </ScrollView>
 
-      {/* Fullscreen "Show to Mongol" modal */}
       <Modal visible={!!fullscreen} animationType="fade" statusBarTranslucent>
         <View style={styles.fullscreenModal}>
           <Pressable style={styles.fullscreenClose} onPress={() => setFullscreen(null)}>
@@ -257,7 +247,6 @@ const styles = StyleSheet.create({
   speakBtnIcon: { fontSize: 18 },
   showBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#7c3aed', alignItems: 'center', justifyContent: 'center' },
   showBtnIcon: { fontSize: 18 },
-  // Fullscreen modal
   fullscreenModal: { flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' },
   fullscreenClose: { position: 'absolute', top: 56, right: 24, zIndex: 10 },
   fullscreenCloseText: { fontSize: 16, color: '#888', fontWeight: '600' },

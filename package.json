@@ -5,7 +5,7 @@
   "dependencies": {
     "@maplibre/maplibre-react-native": "^11.3.6",
     "expo": "~57.0.14",
-    "expo-av": "^16.0.8",
+    "expo-audio": "~57.0.4",
     "expo-build-properties": "~57.0.13",
     "expo-constants": "~57.0.12",
     "expo-dev-client": "~57.0.14",

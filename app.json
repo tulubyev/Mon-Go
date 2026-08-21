@@ -53,12 +53,6 @@
         }
       ],
       [
-        "expo-av",
-        {
-          "microphonePermission": "Микрофон нужен для живого переводчика — запись речи на монгольском"
-        }
-      ],
-      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
@@ -73,7 +67,8 @@
             "useFrameworks": "static"
           }
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true
