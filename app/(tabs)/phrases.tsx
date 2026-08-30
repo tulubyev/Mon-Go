@@ -34,13 +34,15 @@ export default function PhrasesScreen() {
             onStopped: resolve,
           });
         });
-      } else {
-        const url = api.tts(phrase.mn, 'mn');
-        const audio = new Audio(url);
+      } else if (typeof window !== 'undefined' && window.speechSynthesis) {
         await new Promise<void>((resolve) => {
-          audio.onended = () => resolve();
-          audio.onerror = () => resolve();
-          audio.play().catch(() => resolve());
+          const u = new SpeechSynthesisUtterance(phrase.mn);
+          u.lang = 'mn-MN';
+          u.rate = 0.85;
+          u.onend = () => resolve();
+          u.onerror = () => resolve();
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(u);
         });
       }
     } catch {

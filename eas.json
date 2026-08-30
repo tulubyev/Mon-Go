@@ -14,6 +14,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "credentialsSource": "local",
       "ios": {
         "simulator": false
       },
