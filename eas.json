@@ -22,7 +22,15 @@
         "buildType": "apk"
       }
     },
+    "testflight": {
+      "distribution": "store",
+      "autoIncrement": true,
+      "ios": {
+        "image": "latest"
+      }
+    },
     "production": {
+      "distribution": "store",
       "autoIncrement": true,
       "ios": {
         "image": "latest"
@@ -33,9 +41,16 @@
     }
   },
   "submit": {
+    "testflight": {
+      "ios": {
+        "appleId": "alt@in2sys.fr",
+        "ascAppId": "6740479141"
+      }
+    },
     "production": {
       "ios": {
-        "appleId": "alt@in2sys.fr"
+        "appleId": "alt@in2sys.fr",
+        "ascAppId": "6740479141"
       },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
