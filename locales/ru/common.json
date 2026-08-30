@@ -1,0 +1,128 @@
+{
+  "tabs": {
+    "home": "Главная",
+    "map": "Карта",
+    "phrases": "Фразы",
+    "chat": "Чат",
+    "ads": "Объявления"
+  },
+  "home": {
+    "title": "Mon-Go",
+    "subtitle": "Путеводитель по Монголии",
+    "topics": "Разделы"
+  },
+  "map": {
+    "title": "Карта",
+    "categories": {
+      "all": "Все",
+      "museum": "Музеи",
+      "restaurant": "Рестораны",
+      "cafe": "Кафе",
+      "hotel": "Отели",
+      "sight": "Места",
+      "market": "Рынки",
+      "camp": "Лагеря",
+      "recreation": "Отдых",
+      "transport": "Транспорт",
+      "safety": "Помощь",
+      "accommodation": "Жильё",
+      "food": "Еда"
+    },
+    "objects": "объектов",
+    "route": "Маршрут",
+    "call": "Позвонить",
+    "website": "Сайт",
+    "openIn": "Открыть в",
+    "appleMaps": "Apple Maps",
+    "googleMaps": "Google Maps",
+    "twoGis": "2ГИС",
+    "webFallback": {
+      "title": "Интерактивная карта",
+      "subtitle": "Доступна в мобильном приложении iOS/Android"
+    }
+  },
+  "phrases": {
+    "title": "Монгольские фразы",
+    "sections": "разделов",
+    "tapToPlay": "нажми 🔊 для произношения",
+    "quiz": "Квиз",
+    "ocr": "OCR"
+  },
+  "chat": {
+    "title": "AI Ассистент",
+    "placeholder": "Задайте вопрос о Монголии...",
+    "send": "Отправить",
+    "interpreter": "Переводчик"
+  },
+  "ads": {
+    "title": "Объявления",
+    "categories": {
+      "trips": "Попутчики",
+      "housing": "Жильё",
+      "sell": "Продам",
+      "search": "Ищу"
+    },
+    "create": "Подать объявление",
+    "noAds": "Объявлений нет",
+    "expires": "до",
+    "titleField": "Заголовок",
+    "description": "Описание",
+    "contact": "Контакт (телефон, telegram)",
+    "publish": "Опубликовать",
+    "limit": "Можно подавать до 3 объявлений в сутки",
+    "success": "Объявление опубликовано!"
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": "Язык",
+    "selectLanguage": "Выберите язык",
+    "languages": {
+      "ru": "Русский",
+      "en": "English",
+      "zh": "中文",
+      "mn": "Монгол"
+    }
+  },
+  "interpreter": {
+    "title": "Переводчик",
+    "hold": "Держи и говори",
+    "release": "Отпусти для перевода",
+    "listening": "Слушаю...",
+    "processing": "Перевожу...",
+    "responses": "Варианты ответа",
+    "showToLocal": "Показать собеседнику"
+  },
+  "ocr": {
+    "title": "Фото-переводчик",
+    "camera": "Камера",
+    "gallery": "Галерея",
+    "translating": "Перевожу...",
+    "original": "Оригинал",
+    "translation": "Перевод"
+  },
+  "quiz": {
+    "title": "Квиз",
+    "play": "Воспроизвести",
+    "score": "Счёт",
+    "correct": "Верно!",
+    "wrong": "Неверно",
+    "next": "Следующий",
+    "finish": "Завершить"
+  },
+  "common": {
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "retry": "Повторить",
+    "back": "Назад",
+    "close": "Закрыть",
+    "save": "Сохранить",
+    "cancel": "Отменить",
+    "search": "Поиск",
+    "noData": "Нет данных"
+  },
+  "stars": {
+    "one": "звезда",
+    "few": "звезды",
+    "many": "звёзд"
+  }
+}

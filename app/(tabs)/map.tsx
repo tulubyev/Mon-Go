@@ -1,6 +1,11 @@
 import { Platform, StyleSheet, Text, View, Pressable, ScrollView, Linking, ActivityIndicator } from 'react-native';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api, POI } from '@/services/api';
+
+// v11 named exports — no default export, no setAccessToken
+const MapLibreGL = Platform.OS !== 'web' ? require('@maplibre/maplibre-react-native') : null;
+const Location = Platform.OS !== 'web' ? require('expo-location') : null;
 
 export default function MapScreen() {
   if (Platform.OS === 'web') return <MapWebFallback />;
@@ -8,36 +13,35 @@ export default function MapScreen() {
 }
 
 // ─── Category filter config ───────────────────────────────────────────────────
-const CATEGORIES = [
-  { key: 'all',           label: 'Все',      icon: '📍' },
-  { key: 'sight',         label: 'Места',    icon: '🏛️' },
-  { key: 'food',          label: 'Еда',      icon: '🍽️' },
-  { key: 'accommodation', label: 'Жильё',    icon: '🏨' },
-  { key: 'camp',          label: 'Лагеря',   icon: '🏕️' },
-  { key: 'transport',     label: 'Транспорт',icon: '✈️' },
-  { key: 'safety',        label: 'Помощь',   icon: '🏥' },
+const CATEGORY_KEYS = [
+  { key: 'all',        icon: '📍' },
+  { key: 'museum',     icon: '🏛️' },
+  { key: 'restaurant', icon: '🍽️' },
+  { key: 'cafe',       icon: '☕' },
+  { key: 'hotel',      icon: '🏨' },
+  { key: 'sight',      icon: '👁️' },
+  { key: 'market',     icon: '🛒' },
+  { key: 'camp',       icon: '🏕️' },
+  { key: 'recreation', icon: '🌄' },
+  { key: 'transport',  icon: '🚉' },
+  { key: 'safety',     icon: '🏥' },
 ];
 
 // ─── Native map (iOS / Android) ───────────────────────────────────────────────
 function MapNativeScreen() {
-  const MapLibreGL = require('@maplibre/maplibre-react-native');
-  const Location = require('expo-location');
-  MapLibreGL.setAccessToken(null);
-
+  const { t } = useTranslation();
+  const CATEGORIES = CATEGORY_KEYS.map(c => ({ ...c, label: t(`map.categories.${c.key}`) }));
   const [pois, setPois] = useState<POI[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
   const [selected, setSelected] = useState<POI | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocationVisible, setUserLocationVisible] = useState(false);
 
   useEffect(() => {
     api.getPOI('all').then(setPois).catch(() => {}).finally(() => setLoading(false));
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
-      }
+      if (status === 'granted') setUserLocationVisible(true);
     })();
   }, []);
 
@@ -46,11 +50,13 @@ function MapNativeScreen() {
     : pois.filter(p => p.category === activeCategory);
 
   const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-  const mapStyle = JSON.stringify({
-    version: 8,
-    sources: { osm: { type: 'raster', tiles: [TILE_URL], tileSize: 256, attribution: '© OpenStreetMap' } },
-    layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
-  });
+  const mapStyle = {
+    version: 8 as const,
+    sources: { osm: { type: 'raster' as const, tiles: [TILE_URL], tileSize: 256, attribution: '© OpenStreetMap' } },
+    layers: [{ id: 'osm', type: 'raster' as const, source: 'osm' }],
+  };
+
+  const { Map, Camera, UserLocation, Marker } = MapLibreGL;
 
   return (
     <View style={styles.container}>
@@ -68,25 +74,25 @@ function MapNativeScreen() {
         ))}
       </ScrollView>
 
-      {/* Map */}
-      <MapLibreGL.MapView style={styles.map} styleJSON={mapStyle} onPress={() => setSelected(null)}>
-        <MapLibreGL.Camera
-          defaultSettings={{ centerCoordinate: [103.8467, 46.8625], zoomLevel: 5 }}
+      {/* Map — v11: Map + mapStyle prop, Camera initialViewState, Marker lngLat */}
+      <Map style={styles.map} mapStyle={mapStyle} onPress={() => setSelected(null)}>
+        <Camera
+          initialViewState={{ center: [103.8467, 46.8625], zoom: 5 }}
         />
-        {userLocation && <MapLibreGL.UserLocation visible />}
+        {userLocationVisible && <UserLocation />}
         {filtered.map(poi => (
-          <MapLibreGL.PointAnnotation
+          <Marker
             key={`poi-${poi.id}`}
             id={`poi-${poi.id}`}
-            coordinate={[poi.lng, poi.lat]}
-            onSelected={() => setSelected(poi)}
+            lngLat={[poi.lng, poi.lat] as [number, number]}
+            onPress={() => setSelected(poi)}
           >
             <View style={styles.marker}>
               <Text style={styles.markerIcon}>{poi.icon || '📍'}</Text>
             </View>
-          </MapLibreGL.PointAnnotation>
+          </Marker>
         ))}
-      </MapLibreGL.MapView>
+      </Map>
 
       {/* Loading overlay */}
       {loading && (
@@ -98,7 +104,7 @@ function MapNativeScreen() {
       {/* POI count badge */}
       {!loading && (
         <View style={styles.countBadge}>
-          <Text style={styles.countText}>{filtered.length} объектов</Text>
+          <Text style={styles.countText}>{filtered.length} {t('map.objects')}</Text>
         </View>
       )}
 
@@ -110,7 +116,19 @@ function MapNativeScreen() {
 
 // ─── InfoCard ─────────────────────────────────────────────────────────────────
 function InfoCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
-  const catLabel = CATEGORIES.find(c => c.key === poi.category)?.label || poi.category;
+  const { t } = useTranslation();
+  const catLabel = t(`map.categories.${poi.category}`, { defaultValue: poi.category });
+
+  const openDirections = () => {
+    const lat = poi.lat, lng = poi.lng;
+    const opts = [
+      { label: t('map.appleMaps'), url: `https://maps.apple.com/?daddr=${lat},${lng}` },
+      { label: t('map.googleMaps'), url: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` },
+      { label: t('map.twoGis'), url: `dgis://2gis.ru/routeSearch/rsType/car/to/${lng},${lat}` },
+    ];
+    // Open Apple Maps by default; TODO: ActionSheet for choice
+    Linking.openURL(opts[0].url);
+  };
 
   return (
     <View style={styles.infoCard}>
@@ -139,21 +157,15 @@ function InfoCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
       <View style={styles.infoCardActions}>
         {poi.phone && (
           <Pressable style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${poi.phone}`)}>
-            <Text style={styles.actionBtnText}>📞 Позвонить</Text>
+            <Text style={styles.actionBtnText}>📞 {t('map.call')}</Text>
           </Pressable>
         )}
-        <Pressable
-          style={[styles.actionBtn, styles.actionBtnPrimary]}
-          onPress={() => {
-            const url = `https://maps.apple.com/?daddr=${poi.lat},${poi.lng}`;
-            Linking.openURL(url);
-          }}
-        >
-          <Text style={[styles.actionBtnText, styles.actionBtnTextPrimary]}>📍 Маршрут</Text>
+        <Pressable style={[styles.actionBtn, styles.actionBtnPrimary]} onPress={openDirections}>
+          <Text style={[styles.actionBtnText, styles.actionBtnTextPrimary]}>📍 {t('map.route')}</Text>
         </Pressable>
         {poi.url && (
           <Pressable style={styles.actionBtn} onPress={() => Linking.openURL(poi.url!)}>
-            <Text style={styles.actionBtnText}>🌐 Сайт</Text>
+            <Text style={styles.actionBtnText}>🌐 {t('map.website')}</Text>
           </Pressable>
         )}
       </View>
@@ -172,6 +184,8 @@ function InfoRow({ icon, text }: { icon: string; text: string }) {
 
 // ─── Web fallback ─────────────────────────────────────────────────────────────
 function MapWebFallback() {
+  const { t } = useTranslation();
+  const CATEGORIES = CATEGORY_KEYS.map(c => ({ ...c, label: t(`map.categories.${c.key}`) }));
   const [pois, setPois] = useState<POI[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
   const [selected, setSelected] = useState<POI | null>(null);
@@ -196,8 +210,8 @@ function MapWebFallback() {
       </ScrollView>
       <View style={styles.webMapPlaceholder}>
         <Text style={styles.webMapEmoji}>🗺️</Text>
-        <Text style={styles.webMapTitle}>Интерактивная карта</Text>
-        <Text style={styles.webMapSub}>Доступна в мобильном приложении iOS/Android</Text>
+        <Text style={styles.webMapTitle}>{t('map.webFallback.title')}</Text>
+        <Text style={styles.webMapSub}>{t('map.webFallback.subtitle')}</Text>
       </View>
       <ScrollView style={styles.poiList}>
         {filtered.map(poi => (

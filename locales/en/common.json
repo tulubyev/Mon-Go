@@ -1,0 +1,128 @@
+{
+  "tabs": {
+    "home": "Home",
+    "map": "Map",
+    "phrases": "Phrases",
+    "chat": "Chat",
+    "ads": "Ads"
+  },
+  "home": {
+    "title": "Mon-Go",
+    "subtitle": "Mongolia Travel Guide",
+    "topics": "Topics"
+  },
+  "map": {
+    "title": "Map",
+    "categories": {
+      "all": "All",
+      "museum": "Museums",
+      "restaurant": "Restaurants",
+      "cafe": "Cafes",
+      "hotel": "Hotels",
+      "sight": "Sights",
+      "market": "Markets",
+      "camp": "Camps",
+      "recreation": "Recreation",
+      "transport": "Transport",
+      "safety": "Help",
+      "accommodation": "Stay",
+      "food": "Food"
+    },
+    "objects": "places",
+    "route": "Directions",
+    "call": "Call",
+    "website": "Website",
+    "openIn": "Open in",
+    "appleMaps": "Apple Maps",
+    "googleMaps": "Google Maps",
+    "twoGis": "2GIS",
+    "webFallback": {
+      "title": "Interactive Map",
+      "subtitle": "Available in the iOS/Android app"
+    }
+  },
+  "phrases": {
+    "title": "Mongolian Phrases",
+    "sections": "sections",
+    "tapToPlay": "tap 🔊 to hear pronunciation",
+    "quiz": "Quiz",
+    "ocr": "OCR"
+  },
+  "chat": {
+    "title": "AI Assistant",
+    "placeholder": "Ask anything about Mongolia...",
+    "send": "Send",
+    "interpreter": "Interpreter"
+  },
+  "ads": {
+    "title": "Classifieds",
+    "categories": {
+      "trips": "Travel Partners",
+      "housing": "Housing",
+      "sell": "For Sale",
+      "search": "Looking For"
+    },
+    "create": "Post Ad",
+    "noAds": "No ads yet",
+    "expires": "until",
+    "titleField": "Title",
+    "description": "Description",
+    "contact": "Contact (phone, telegram)",
+    "publish": "Publish",
+    "limit": "Up to 3 ads per day",
+    "success": "Ad published!"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select language",
+    "languages": {
+      "ru": "Русский",
+      "en": "English",
+      "zh": "中文",
+      "mn": "Монгол"
+    }
+  },
+  "interpreter": {
+    "title": "Interpreter",
+    "hold": "Hold and speak",
+    "release": "Release to translate",
+    "listening": "Listening...",
+    "processing": "Translating...",
+    "responses": "Response options",
+    "showToLocal": "Show to local"
+  },
+  "ocr": {
+    "title": "Photo Translator",
+    "camera": "Camera",
+    "gallery": "Gallery",
+    "translating": "Translating...",
+    "original": "Original",
+    "translation": "Translation"
+  },
+  "quiz": {
+    "title": "Quiz",
+    "play": "Play",
+    "score": "Score",
+    "correct": "Correct!",
+    "wrong": "Wrong",
+    "next": "Next",
+    "finish": "Finish"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "back": "Back",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "noData": "No data"
+  },
+  "stars": {
+    "one": "star",
+    "few": "stars",
+    "many": "stars"
+  }
+}

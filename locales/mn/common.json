@@ -1,0 +1,128 @@
+{
+  "tabs": {
+    "home": "Нүүр",
+    "map": "Газрын зураг",
+    "phrases": "Хэллэг",
+    "chat": "Чат",
+    "ads": "Зар"
+  },
+  "home": {
+    "title": "Мон-Го",
+    "subtitle": "Монголын аяллын гарын авлага",
+    "topics": "Сэдвүүд"
+  },
+  "map": {
+    "title": "Газрын зураг",
+    "categories": {
+      "all": "Бүгд",
+      "museum": "Музей",
+      "restaurant": "Ресторан",
+      "cafe": "Кафе",
+      "hotel": "Зочид буудал",
+      "sight": "Үзмэр",
+      "market": "Зах",
+      "camp": "Буудал",
+      "recreation": "Амралт",
+      "transport": "Тээвэр",
+      "safety": "Тусламж",
+      "accommodation": "Байр",
+      "food": "Хоол"
+    },
+    "objects": "объект",
+    "route": "Чиглэл",
+    "call": "Залгах",
+    "website": "Вэбсайт",
+    "openIn": "Нээх",
+    "appleMaps": "Apple Maps",
+    "googleMaps": "Google Maps",
+    "twoGis": "2GIS",
+    "webFallback": {
+      "title": "Интерактив газрын зураг",
+      "subtitle": "iOS/Android апп-д боломжтой"
+    }
+  },
+  "phrases": {
+    "title": "Монгол хэллэгүүд",
+    "sections": "хэсэг",
+    "tapToPlay": "🔊 дарж дуудлага сонсоорой",
+    "quiz": "Тест",
+    "ocr": "OCR"
+  },
+  "chat": {
+    "title": "AI Туслагч",
+    "placeholder": "Монголын талаар асуулт асуугаарай...",
+    "send": "Илгээх",
+    "interpreter": "Орчуулагч"
+  },
+  "ads": {
+    "title": "Зар",
+    "categories": {
+      "trips": "Хамтрагч",
+      "housing": "Орон сууц",
+      "sell": "Зарна",
+      "search": "Хайна"
+    },
+    "create": "Зар оруулах",
+    "noAds": "Зар байхгүй",
+    "expires": "хүртэл",
+    "titleField": "Гарчиг",
+    "description": "Тайлбар",
+    "contact": "Холбоо барих (утас, telegram)",
+    "publish": "Нийтлэх",
+    "limit": "Өдөрт 3 хүртэл зар оруулна",
+    "success": "Зар нийтлэгдлээ!"
+  },
+  "settings": {
+    "title": "Тохиргоо",
+    "language": "Хэл",
+    "selectLanguage": "Хэл сонгоно уу",
+    "languages": {
+      "ru": "Русский",
+      "en": "English",
+      "zh": "中文",
+      "mn": "Монгол"
+    }
+  },
+  "interpreter": {
+    "title": "Орчуулагч",
+    "hold": "Дарж хэлнэ үү",
+    "release": "Орчуулахын тулд суллана уу",
+    "listening": "Сонсож байна...",
+    "processing": "Орчуулж байна...",
+    "responses": "Хариултын сонголтууд",
+    "showToLocal": "Монголд үзүүлэх"
+  },
+  "ocr": {
+    "title": "Зураг орчуулагч",
+    "camera": "Камер",
+    "gallery": "Галерей",
+    "translating": "Орчуулж байна...",
+    "original": "Эх текст",
+    "translation": "Орчуулга"
+  },
+  "quiz": {
+    "title": "Тест",
+    "play": "Тоглох",
+    "score": "Оноо",
+    "correct": "Зөв!",
+    "wrong": "Буруу",
+    "next": "Дараах",
+    "finish": "Дуусгах"
+  },
+  "common": {
+    "loading": "Уншиж байна...",
+    "error": "Алдаа",
+    "retry": "Дахин оролдох",
+    "back": "Буцах",
+    "close": "Хаах",
+    "save": "Хадгалах",
+    "cancel": "Цуцлах",
+    "search": "Хайх",
+    "noData": "Мэдээлэл байхгүй"
+  },
+  "stars": {
+    "one": "од",
+    "few": "од",
+    "many": "од"
+  }
+}

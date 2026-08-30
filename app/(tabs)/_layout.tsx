@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -7,6 +8,7 @@ import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -18,7 +20,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Mon-Go',
-          tabBarLabel: 'Главная',
+          tabBarLabel: t('tabs.home'),
           tabBarIcon: ({ color }) => (
             <TabIcon emoji="🏠" color={color} />
           ),
@@ -27,8 +29,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="map"
         options={{
-          title: 'Карта',
-          tabBarLabel: 'Карта',
+          title: t('tabs.map'),
+          tabBarLabel: t('tabs.map'),
           tabBarIcon: ({ color }) => (
             <TabIcon emoji="🗺️" color={color} />
           ),
@@ -37,8 +39,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="phrases"
         options={{
-          title: 'Фразы',
-          tabBarLabel: 'Фразы',
+          title: t('tabs.phrases'),
+          tabBarLabel: t('tabs.phrases'),
           tabBarIcon: ({ color }) => (
             <TabIcon emoji="🗣️" color={color} />
           ),
@@ -47,8 +49,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="chat"
         options={{
-          title: 'AI Чат',
-          tabBarLabel: 'Чат',
+          title: t('tabs.chat'),
+          tabBarLabel: t('tabs.chat'),
           tabBarIcon: ({ color }) => (
             <TabIcon emoji="💬" color={color} />
           ),
@@ -57,10 +59,20 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ads"
         options={{
-          title: 'Объявления',
-          tabBarLabel: 'Объявл.',
+          title: t('tabs.ads'),
+          tabBarLabel: t('tabs.ads'),
           tabBarIcon: ({ color }) => (
             <TabIcon emoji="📋" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: t('settings.title'),
+          tabBarLabel: t('settings.title'),
+          tabBarIcon: ({ color }) => (
+            <TabIcon emoji="⚙️" color={color} />
           ),
         }}
       />

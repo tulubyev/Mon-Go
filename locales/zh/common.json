@@ -1,0 +1,128 @@
+{
+  "tabs": {
+    "home": "首页",
+    "map": "地图",
+    "phrases": "短语",
+    "chat": "对话",
+    "ads": "广告"
+  },
+  "home": {
+    "title": "蒙行",
+    "subtitle": "蒙古旅游指南",
+    "topics": "主题"
+  },
+  "map": {
+    "title": "地图",
+    "categories": {
+      "all": "全部",
+      "museum": "博物馆",
+      "restaurant": "餐厅",
+      "cafe": "咖啡馆",
+      "hotel": "酒店",
+      "sight": "景点",
+      "market": "市场",
+      "camp": "营地",
+      "recreation": "休闲",
+      "transport": "交通",
+      "safety": "救助",
+      "accommodation": "住宿",
+      "food": "美食"
+    },
+    "objects": "个地点",
+    "route": "导航",
+    "call": "拨打电话",
+    "website": "网站",
+    "openIn": "打开",
+    "appleMaps": "苹果地图",
+    "googleMaps": "谷歌地图",
+    "twoGis": "2GIS",
+    "webFallback": {
+      "title": "互动地图",
+      "subtitle": "在iOS/Android应用中查看"
+    }
+  },
+  "phrases": {
+    "title": "蒙古语短语",
+    "sections": "个章节",
+    "tapToPlay": "点击🔊收听发音",
+    "quiz": "测验",
+    "ocr": "识图"
+  },
+  "chat": {
+    "title": "AI助手",
+    "placeholder": "询问有关蒙古的问题...",
+    "send": "发送",
+    "interpreter": "翻译"
+  },
+  "ads": {
+    "title": "分类广告",
+    "categories": {
+      "trips": "同行伙伴",
+      "housing": "住房",
+      "sell": "出售",
+      "search": "寻找"
+    },
+    "create": "发布广告",
+    "noAds": "暂无广告",
+    "expires": "截止",
+    "titleField": "标题",
+    "description": "描述",
+    "contact": "联系方式（电话、Telegram）",
+    "publish": "发布",
+    "limit": "每天最多3条广告",
+    "success": "广告已发布！"
+  },
+  "settings": {
+    "title": "设置",
+    "language": "语言",
+    "selectLanguage": "选择语言",
+    "languages": {
+      "ru": "Русский",
+      "en": "English",
+      "zh": "中文",
+      "mn": "Монгол"
+    }
+  },
+  "interpreter": {
+    "title": "翻译器",
+    "hold": "按住说话",
+    "release": "松开翻译",
+    "listening": "聆听中...",
+    "processing": "翻译中...",
+    "responses": "回复选项",
+    "showToLocal": "展示给当地人"
+  },
+  "ocr": {
+    "title": "图片翻译",
+    "camera": "相机",
+    "gallery": "相册",
+    "translating": "翻译中...",
+    "original": "原文",
+    "translation": "译文"
+  },
+  "quiz": {
+    "title": "测验",
+    "play": "播放",
+    "score": "分数",
+    "correct": "正确！",
+    "wrong": "错误",
+    "next": "下一题",
+    "finish": "完成"
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "retry": "重试",
+    "back": "返回",
+    "close": "关闭",
+    "save": "保存",
+    "cancel": "取消",
+    "search": "搜索",
+    "noData": "暂无数据"
+  },
+  "stars": {
+    "one": "星",
+    "few": "星",
+    "many": "星"
+  }
+}
