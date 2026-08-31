@@ -50,9 +50,14 @@
   },
   "chat": {
     "title": "AI助手",
+    "about": "蒙古AI助手",
+    "sub": "询问关于交通、住宿、语言、安全等问题",
     "placeholder": "询问有关蒙古的问题...",
     "send": "发送",
-    "interpreter": "翻译"
+    "interpreter": "翻译",
+    "typing": "回复中...",
+    "noResponse": "无回复",
+    "connectionError": "连接错误，请检查网络。"
   },
   "ads": {
     "title": "分类广告",
@@ -84,30 +89,45 @@
     }
   },
   "interpreter": {
-    "title": "翻译器",
-    "hold": "按住说话",
-    "release": "松开翻译",
+    "title": "实时翻译",
+    "hold": "按住录音",
+    "release": "松开",
     "listening": "聆听中...",
-    "processing": "翻译中...",
+    "processing": "识别语音中...",
     "responses": "回复选项",
-    "showToLocal": "展示给当地人"
+    "showToLocal": "展示给当地人",
+    "idle": "按住说蒙古语\n或让当地人说话",
+    "recording": "录音中... 说完松开",
+    "again": "重新",
+    "speak": "播放",
+    "translation": "翻译",
+    "webOnly": "录音功能仅在iOS/Android手机应用中可用"
   },
   "ocr": {
-    "title": "图片翻译",
+    "title": "OCR翻译",
     "camera": "相机",
     "gallery": "相册",
     "translating": "翻译中...",
-    "original": "原文",
-    "translation": "译文"
+    "original": "原文（来自图片）",
+    "translation": "译文",
+    "recognizing": "识别文字中…",
+    "toRu": "翻译成俄语",
+    "toMn": "翻译成蒙古语",
+    "photoHint": "拍摄文字",
+    "photoSub": "招牌、菜单、标识 — 点击相机或从相册选择。\nAI将识别并翻译文字。",
+    "failed": "无法识别文字，请重试。",
+    "noAccess": "无权限访问"
   },
   "quiz": {
-    "title": "测验",
+    "title": "音频测验",
     "play": "播放",
     "score": "分数",
     "correct": "正确！",
     "wrong": "错误",
     "next": "下一题",
-    "finish": "完成"
+    "finish": "完成",
+    "tapToPlay": "点击收听",
+    "wrongAnswer": "错误。正确答案："
   },
   "common": {
     "loading": "加载中...",

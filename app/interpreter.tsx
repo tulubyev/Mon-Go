@@ -4,6 +4,7 @@ import {
   Platform, ActivityIndicator, SafeAreaView, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
 
 interface Response { mn: string; ru: string; }
@@ -23,6 +24,7 @@ async function speak(text: string) {
 
 export default function InterpreterScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [stage, setStage] = useState<Stage>('idle');
   const [transcript, setTranscript] = useState('');
   const [translation, setTranslation] = useState('');
@@ -37,14 +39,13 @@ export default function InterpreterScreen() {
       return;
     }
     try {
-      const { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync } = require('expo-audio');
+      const { AudioRecorder, RecordingPresets, requestRecordingPermissionsAsync } = require('expo-audio');
       const { granted } = await requestRecordingPermissionsAsync();
       if (!granted) {
-        Alert.alert('Разрешение', 'Нет доступа к микрофону');
+        Alert.alert(t('ocr.noAccess'), t('common.error'));
         return;
       }
-      const AudioModule = require('expo-audio').default || require('expo-audio');
-      const recorder = new AudioModule.AudioRecorder(RecordingPresets.HIGH_QUALITY);
+      const recorder = new AudioRecorder(RecordingPresets.HIGH_QUALITY);
       recorderRef.current = recorder;
       await recorder.prepareToRecordAsync();
       recorder.record();
@@ -110,18 +111,18 @@ export default function InterpreterScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>← Назад</Text>
+          <Text style={styles.backBtnText}>← {t('common.back')}</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>🎙️ Живой переводчик</Text>
+        <Text style={styles.headerTitle}>🎙️ {t('interpreter.title')}</Text>
         <View style={{ width: 70 }} />
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.recordArea}>
           <Text style={styles.hint}>
-            {stage === 'idle' && 'Нажми и держи — говори по-монгольски\nили слушай монгола'}
-            {stage === 'recording' && 'Запись... отпусти когда закончишь'}
-            {stage === 'processing' && 'Распознаём речь...'}
+            {stage === 'idle' && t('interpreter.idle')}
+            {stage === 'recording' && t('interpreter.recording')}
+            {stage === 'processing' && t('interpreter.processing')}
             {stage === 'result' && transcript}
           </Text>
 
@@ -139,30 +140,30 @@ export default function InterpreterScreen() {
                 {stage === 'result' ? '🔄' : '🎙️'}
               </Text>
               <Text style={styles.micLabel}>
-                {stage === 'idle' && 'Держи для записи'}
-                {stage === 'recording' && 'Отпусти'}
-                {stage === 'result' && 'Заново'}
+                {stage === 'idle' && t('interpreter.hold')}
+                {stage === 'recording' && t('interpreter.release')}
+                {stage === 'result' && t('interpreter.again')}
               </Text>
             </Pressable>
           )}
 
           {Platform.OS === 'web' && stage === 'idle' && (
             <View style={styles.webNote}>
-              <Text style={styles.webNoteText}>🎙️ Запись доступна только в мобильном приложении</Text>
+              <Text style={styles.webNoteText}>🎙️ {t('interpreter.webOnly')}</Text>
             </View>
           )}
         </View>
 
         {translation !== '' && (
           <View style={styles.translationBox}>
-            <Text style={styles.translationLabel}>Перевод</Text>
+            <Text style={styles.translationLabel}>{t('interpreter.translation')}</Text>
             <Text style={styles.translationText}>{translation}</Text>
           </View>
         )}
 
         {responses.length > 0 && (
           <View style={styles.responsesSection}>
-            <Text style={styles.responsesTitle}>Варианты ответа</Text>
+            <Text style={styles.responsesTitle}>{t('interpreter.responses')}</Text>
             {responses.map((resp, idx) => (
               <View key={idx} style={styles.responseCard}>
                 <View style={styles.responseTexts}>
@@ -193,7 +194,7 @@ export default function InterpreterScreen() {
       <Modal visible={!!fullscreen} animationType="fade" statusBarTranslucent>
         <View style={styles.fullscreenModal}>
           <Pressable style={styles.fullscreenClose} onPress={() => setFullscreen(null)}>
-            <Text style={styles.fullscreenCloseText}>✕ Закрыть</Text>
+            <Text style={styles.fullscreenCloseText}>✕ {t('common.close')}</Text>
           </Pressable>
           <View style={styles.fullscreenContent}>
             <Text style={styles.fullscreenMn}>{fullscreen?.mn}</Text>
@@ -202,7 +203,7 @@ export default function InterpreterScreen() {
               style={styles.fullscreenSpeak}
               onPress={() => fullscreen && speak(fullscreen.mn)}
             >
-              <Text style={styles.fullscreenSpeakText}>🔊 Произнести</Text>
+              <Text style={styles.fullscreenSpeakText}>🔊 {t('interpreter.speak')}</Text>
             </Pressable>
           </View>
         </View>

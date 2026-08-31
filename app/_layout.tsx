@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import '@/lib/i18n';
 import { initI18n } from '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -47,15 +48,16 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="quiz" options={{ title: 'Аудио-квиз', headerBackTitle: 'Назад' }} />
-        <Stack.Screen name="ocr" options={{ title: 'OCR Переводчик', headerBackTitle: 'Назад' }} />
-        <Stack.Screen name="interpreter" options={{ title: 'Живой переводчик', headerBackTitle: 'Назад', headerShown: false }} />
+        <Stack.Screen name="quiz" options={{ title: t('quiz.title'), headerBackTitle: t('common.back') }} />
+        <Stack.Screen name="ocr" options={{ title: t('ocr.title'), headerBackTitle: t('common.back') }} />
+        <Stack.Screen name="interpreter" options={{ title: t('interpreter.title'), headerBackTitle: t('common.back'), headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

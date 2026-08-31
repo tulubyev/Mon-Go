@@ -50,9 +50,14 @@
   },
   "chat": {
     "title": "AI Assistant",
+    "about": "AI Chat about Mongolia",
+    "sub": "Ask about transport, accommodation, language, safety and anything else",
     "placeholder": "Ask anything about Mongolia...",
     "send": "Send",
-    "interpreter": "Interpreter"
+    "interpreter": "Interpreter",
+    "typing": "Thinking...",
+    "noResponse": "No response",
+    "connectionError": "Connection error. Check your internet."
   },
   "ads": {
     "title": "Classifieds",
@@ -84,30 +89,45 @@
     }
   },
   "interpreter": {
-    "title": "Interpreter",
-    "hold": "Hold and speak",
-    "release": "Release to translate",
+    "title": "Live Interpreter",
+    "hold": "Hold to record",
+    "release": "Release",
     "listening": "Listening...",
-    "processing": "Translating...",
+    "processing": "Recognizing speech...",
     "responses": "Response options",
-    "showToLocal": "Show to local"
+    "showToLocal": "Show to local",
+    "idle": "Hold and speak Mongolian\nor let a local speak",
+    "recording": "Recording... release when done",
+    "again": "Again",
+    "speak": "Speak",
+    "translation": "Translation",
+    "webOnly": "Recording is only available in the iOS/Android mobile app"
   },
   "ocr": {
-    "title": "Photo Translator",
+    "title": "OCR Translator",
     "camera": "Camera",
     "gallery": "Gallery",
     "translating": "Translating...",
-    "original": "Original",
-    "translation": "Translation"
+    "original": "Original (from image)",
+    "translation": "Translation",
+    "recognizing": "Recognizing text…",
+    "toRu": "Translation to Russian",
+    "toMn": "Translation to Mongolian",
+    "photoHint": "Photograph text",
+    "photoSub": "Signs, menus, notices — tap Camera or choose from Gallery.\nAI will recognize and translate the text.",
+    "failed": "Could not recognize text. Please try again.",
+    "noAccess": "No access"
   },
   "quiz": {
-    "title": "Quiz",
+    "title": "Audio Quiz",
     "play": "Play",
     "score": "Score",
     "correct": "Correct!",
     "wrong": "Wrong",
     "next": "Next",
-    "finish": "Finish"
+    "finish": "Finish",
+    "tapToPlay": "Tap to listen",
+    "wrongAnswer": "Wrong. Correct:"
   },
   "common": {
     "loading": "Loading...",

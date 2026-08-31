@@ -4,15 +4,28 @@ export interface POI {
   id: number;
   name: string;
   name_ru?: string;
+  name_en?: string;
+  name_zh?: string;
+  name_mn?: string;
   lat: number;
   lng: number;
-  category: 'sight' | 'food' | 'accommodation' | 'transport' | 'safety' | 'camp' | 'user';
+  category: 'sight' | 'food' | 'accommodation' | 'transport' | 'safety' | 'camp' | 'user'
+    | 'museum' | 'restaurant' | 'cafe' | 'hotel' | 'market' | 'recreation';
   icon?: string;
   description?: string;
   phone?: string;
   url?: string;
   hours?: string;
   price?: string;
+  stars?: number;
+  booking_url?: string;
+  ostrovok_url?: string;
+  tripdotcom_url?: string;
+  price_from?: number;
+  price_currency?: string;
+  cuisine?: string;
+  price_range?: string;
+  wifi?: boolean;
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -64,5 +77,11 @@ export const api = {
     }>('/api/interpret', {
       method: 'POST',
       body: JSON.stringify({ text, context }),
+    }),
+
+  feedback: (messageId: string, rating: 'up' | 'down') =>
+    request<{ success: boolean }>('/api/feedback', {
+      method: 'POST',
+      body: JSON.stringify({ messageId, rating }),
     }),
 };

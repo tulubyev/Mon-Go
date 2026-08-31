@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
 
 interface Message {
@@ -16,6 +17,7 @@ const USER_ID = 'mobile_' + Math.random().toString(36).slice(2, 10);
 
 export default function ChatScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ question?: string; label?: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -33,19 +35,19 @@ export default function ChatScreen() {
       const botMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: data.response || 'Нет ответа',
+        text: data.response || t('chat.noResponse'),
       };
       setMessages(prev => [...prev, botMsg]);
     } catch {
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: 'Ошибка соединения. Проверьте интернет.',
+        text: t('chat.connectionError'),
       }]);
     } finally {
       setLoading(false);
     }
-  }, [loading]);
+  }, [loading, t]);
 
   useEffect(() => {
     if (params.question) {
@@ -69,10 +71,10 @@ export default function ChatScreen() {
         {messages.length === 0 && (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>💬</Text>
-            <Text style={styles.emptyTitle}>AI Чат о Монголии</Text>
-            <Text style={styles.emptySub}>Спрашивайте о транспорте, жилье, языке, безопасности и всём остальном</Text>
+            <Text style={styles.emptyTitle}>{t('chat.about')}</Text>
+            <Text style={styles.emptySub}>{t('chat.sub')}</Text>
             <Pressable style={styles.interpreterBtn} onPress={() => router.push('/interpreter')}>
-              <Text style={styles.interpreterBtnText}>🎙️ Живой переводчик</Text>
+              <Text style={styles.interpreterBtnText}>🎙️ {t('interpreter.title')}</Text>
             </Pressable>
           </View>
         )}
@@ -92,7 +94,7 @@ export default function ChatScreen() {
         {loading && (
           <View style={styles.typing}>
             <ActivityIndicator size="small" color="#3b82f6" />
-            <Text style={styles.typingText}>Отвечает...</Text>
+            <Text style={styles.typingText}>{t('chat.typing')}</Text>
           </View>
         )}
         <View style={styles.inputRow}>
@@ -100,7 +102,7 @@ export default function ChatScreen() {
             style={styles.input}
             value={input}
             onChangeText={setInput}
-            placeholder="Задайте вопрос о Монголии..."
+            placeholder={t('chat.placeholder')}
             placeholderTextColor="#aaa"
             multiline
             onSubmitEditing={() => send(input)}

@@ -4,11 +4,13 @@ import {
   ActivityIndicator, Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
 
 type Direction = 'to_ru' | 'to_mn';
 
 export default function OCRScreen() {
+  const { t } = useTranslation();
   const [image, setImage] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [original, setOriginal] = useState('');
@@ -22,7 +24,7 @@ export default function OCRScreen() {
         ? await ImagePicker.requestCameraPermissionsAsync()
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Нет доступа', 'Разрешите доступ к ' + (fromCamera ? 'камере' : 'галерее'));
+        Alert.alert(t('ocr.noAccess'), t('common.error'));
         return;
       }
     }
@@ -37,6 +39,7 @@ export default function OCRScreen() {
       setOriginal('');
       setTranslation('');
       if (asset.base64) {
+        setImage(asset.base64);
         await doOCR(asset.base64);
       }
     }
@@ -50,7 +53,7 @@ export default function OCRScreen() {
       setOriginal(result.original || '');
       setTranslation(result.translation || '');
     } catch (err) {
-      Alert.alert('Ошибка', 'Не удалось распознать текст. Попробуйте снова.');
+      Alert.alert(t('common.error'), t('ocr.failed'));
     } finally {
       setLoading(false);
     }
@@ -86,11 +89,11 @@ export default function OCRScreen() {
       <View style={styles.btnRow}>
         {Platform.OS !== 'web' && (
           <Pressable style={[styles.pickBtn, styles.pickBtnCamera]} onPress={() => pickImage(true)}>
-            <Text style={styles.pickBtnText}>📷 Камера</Text>
+            <Text style={styles.pickBtnText}>📷 {t('ocr.camera')}</Text>
           </Pressable>
         )}
         <Pressable style={styles.pickBtn} onPress={() => pickImage(false)}>
-          <Text style={styles.pickBtnText}>🖼️ Галерея</Text>
+          <Text style={styles.pickBtnText}>🖼️ {t('ocr.gallery')}</Text>
         </Pressable>
       </View>
 
@@ -105,7 +108,7 @@ export default function OCRScreen() {
       {loading && (
         <View style={styles.loadingBox}>
           <ActivityIndicator size="large" color="#3b82f6" />
-          <Text style={styles.loadingText}>Распознаём текст…</Text>
+          <Text style={styles.loadingText}>{t('ocr.recognizing')}</Text>
         </View>
       )}
 
@@ -113,19 +116,19 @@ export default function OCRScreen() {
       {!loading && original !== '' && (
         <View style={styles.results}>
           <ResultCard
-            label="Оригинал (с изображения)"
+            label={t('ocr.original')}
             text={original}
             color="#1a1a1a"
             bg="#f8f9fa"
           />
           <ResultCard
-            label={direction === 'to_ru' ? 'Перевод на русский' : 'Перевод на монгольский'}
+            label={direction === 'to_ru' ? t('ocr.toRu') : t('ocr.toMn')}
             text={translation}
             color="#15803d"
             bg="#dcfce7"
           />
           <Pressable style={styles.retryBtn} onPress={retry}>
-            <Text style={styles.retryBtnText}>🔄 Повторить</Text>
+            <Text style={styles.retryBtnText}>🔄 {t('common.retry')}</Text>
           </Pressable>
         </View>
       )}
@@ -134,11 +137,8 @@ export default function OCRScreen() {
       {!imageUri && !loading && (
         <View style={styles.emptyState}>
           <Text style={styles.emptyEmoji}>📷</Text>
-          <Text style={styles.emptyTitle}>Сфотографируй текст</Text>
-          <Text style={styles.emptySub}>
-            Вывески, меню, знаки — нажми «Камера» или выбери из галереи.{'\n'}
-            AI распознает текст и переведёт его.
-          </Text>
+          <Text style={styles.emptyTitle}>{t('ocr.photoHint')}</Text>
+          <Text style={styles.emptySub}>{t('ocr.photoSub')}</Text>
         </View>
       )}
     </ScrollView>

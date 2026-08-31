@@ -3,6 +3,7 @@ import {
   StyleSheet, Text, View, Pressable, Platform, ActivityIndicator, Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { PHRASE_SECTIONS, Phrase } from '@/constants/phrases';
 
 // Flatten all phrases with section info
@@ -53,6 +54,7 @@ async function speakPhrase(text: string) {
 
 export default function QuizScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [question, setQuestion] = useState(() => pickQuestion());
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
@@ -97,7 +99,7 @@ export default function QuizScreen() {
           <Text style={[styles.pctText, { color: pct >= 70 ? '#22c55e' : '#ef4444' }]}>{pct}%</Text>
         )}
         <Pressable onPress={() => router.back()} style={styles.exitBtn}>
-          <Text style={styles.exitBtnText}>✕ Выйти</Text>
+          <Text style={styles.exitBtnText}>✕ {t('common.close')}</Text>
         </Pressable>
       </View>
 
@@ -112,7 +114,7 @@ export default function QuizScreen() {
             : <Text style={styles.playIcon}>🔊</Text>
           }
         </Pressable>
-        <Text style={styles.playHint}>Нажми чтобы прослушать</Text>
+        <Text style={styles.playHint}>{t('quiz.tapToPlay')}</Text>
 
         {/* Mongolian text (shown after selection) */}
         {selected !== null && (
@@ -160,10 +162,10 @@ export default function QuizScreen() {
         {selected !== null && (
           <View style={styles.feedback}>
             <Text style={[styles.feedbackText, { color: selected === question.correctIndex ? '#22c55e' : '#ef4444' }]}>
-              {selected === question.correctIndex ? '🎉 Правильно!' : `❌ Нет. Правильно: «${question.phrase.ru}»`}
+              {selected === question.correctIndex ? `🎉 ${t('quiz.correct')}` : `❌ ${t('quiz.wrongAnswer')} «${question.phrase.ru}»`}
             </Text>
             <Pressable style={styles.nextBtn} onPress={next}>
-              <Text style={styles.nextBtnText}>Следующий →</Text>
+              <Text style={styles.nextBtnText}>{t('quiz.next')} →</Text>
             </Pressable>
           </View>
         )}

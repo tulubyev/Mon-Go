@@ -3,11 +3,13 @@ import {
   StyleSheet, Text, View, ScrollView, Pressable, Platform, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { PHRASE_SECTIONS, Phrase } from '@/constants/phrases';
 import { api } from '@/services/api';
 
 export default function PhrasesScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState<Set<number>>(new Set([0]));
   const [speaking, setSpeaking] = useState<string | null>(null);
 
@@ -56,17 +58,17 @@ export default function PhrasesScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>Монгольские фразы</Text>
+          <Text style={styles.headerTitle}>{t('phrases.title')}</Text>
           <View style={styles.headerActions}>
             <Pressable style={styles.quizBtn} onPress={() => router.push('/quiz')}>
-              <Text style={styles.quizBtnText}>🎯 Квиз</Text>
+              <Text style={styles.quizBtnText}>🎯 {t('phrases.quiz')}</Text>
             </Pressable>
             <Pressable style={styles.ocrBtn} onPress={() => router.push('/ocr')}>
-              <Text style={styles.ocrBtnText}>📷 OCR</Text>
+              <Text style={styles.ocrBtnText}>📷 {t('phrases.ocr')}</Text>
             </Pressable>
           </View>
         </View>
-        <Text style={styles.headerSub}>{PHRASE_SECTIONS.length} разделов · нажми 🔊 для произношения</Text>
+        <Text style={styles.headerSub}>{PHRASE_SECTIONS.length} {t('phrases.sections')} · {t('phrases.tapToPlay')}</Text>
       </View>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {PHRASE_SECTIONS.map((section, si) => {
