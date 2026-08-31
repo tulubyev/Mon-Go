@@ -144,5 +144,23 @@
     "one": "星",
     "few": "星",
     "many": "星"
+  },
+  "transport": {
+    "title": "交通",
+    "airport": "机场",
+    "trains": "火车",
+    "buses": "巴士",
+    "arrivals": "到达",
+    "departures": "出发",
+    "noData": "暂无数据",
+    "book": "购票",
+    "schedule": "时刻表",
+    "from": "起",
+    "duration": "行程时间",
+    "daily": "每日",
+    "weekly": "每周",
+    "seasonal": "季节性",
+    "staticNote": "时刻表可能变动，请向承运商确认",
+    "airportSubtitle": "成吉思汗机场(ULN) · 距市中心53公里"
   }
 }

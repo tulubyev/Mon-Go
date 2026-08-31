@@ -144,5 +144,23 @@
     "one": "star",
     "few": "stars",
     "many": "stars"
+  },
+  "transport": {
+    "title": "Transport",
+    "airport": "Airport",
+    "trains": "Trains",
+    "buses": "Buses",
+    "arrivals": "Arrivals",
+    "departures": "Departures",
+    "noData": "No data yet",
+    "book": "Book ticket",
+    "schedule": "Schedule",
+    "from": "from",
+    "duration": "Travel time",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "seasonal": "Seasonal",
+    "staticNote": "Schedule may change — confirm with carrier",
+    "airportSubtitle": "Chinggis Khaan (ULN) · 53 km from city"
   }
 }

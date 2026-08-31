@@ -58,6 +58,7 @@ function RootLayoutNav() {
         <Stack.Screen name="quiz" options={{ title: t('quiz.title'), headerBackTitle: t('common.back') }} />
         <Stack.Screen name="ocr" options={{ title: t('ocr.title'), headerBackTitle: t('common.back') }} />
         <Stack.Screen name="interpreter" options={{ title: t('interpreter.title'), headerBackTitle: t('common.back'), headerShown: false }} />
+        <Stack.Screen name="transport" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

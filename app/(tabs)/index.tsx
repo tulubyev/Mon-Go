@@ -17,7 +17,10 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <Pressable
             style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-            onPress={() => router.push(`/topic/${item.key}`)}
+            onPress={() => {
+              if (item.key === 'transport') router.push('/transport' as any);
+              else router.push(`/topic/${item.key}`);
+            }}
           >
             <Text style={styles.cardIcon}>{item.icon}</Text>
             <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>

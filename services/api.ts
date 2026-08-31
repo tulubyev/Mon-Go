@@ -84,4 +84,40 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ messageId, rating }),
     }),
+
+  getTransport: (type: 'flight' | 'train' | 'bus' | 'all' = 'all', lang = 'ru') =>
+    request<TransportRoute[]>(`/api/transport?type=${type}&lang=${lang}`),
+
+  getFlights: (direction: 'arrival' | 'departure') =>
+    request<FlightInfo[]>(`/api/flights?direction=${direction}`),
 };
+
+export interface TransportRoute {
+  id: number;
+  type: 'flight' | 'train' | 'bus';
+  origin: string;
+  dest: string;
+  operator?: string;
+  phone?: string;
+  url?: string;
+  price_from?: number;
+  price_currency?: string;
+  notes?: string;
+  schedules?: Array<{
+    weekdays?: string;
+    departs?: string;
+    arrives?: string;
+    duration_hours?: number;
+    season?: string;
+  }>;
+}
+
+export interface FlightInfo {
+  flight_number: string;
+  airline: string;
+  origin: string;
+  dest: string;
+  scheduled: string;
+  estimated?: string;
+  status: string;
+}

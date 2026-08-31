@@ -2,6 +2,10 @@ import { StyleSheet, ScrollView, Pressable, Text, View, SafeAreaView } from 'rea
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { TOPICS } from '@/constants/topics';
 
+const SPECIAL_SCREENS: Record<string, string> = {
+  transport: '/transport',
+};
+
 export default function TopicScreen() {
   const { key } = useLocalSearchParams<{ key: string }>();
   const topic = TOPICS.find((t) => t.key === key);
@@ -20,6 +24,17 @@ export default function TopicScreen() {
           <Text style={styles.overviewText}>{topic.overview}</Text>
         </View>
         <Text style={styles.subheading}>Вопросы</Text>
+        {SPECIAL_SCREENS[key] && (
+          <Pressable
+            style={({ pressed }) => [styles.sqBtn, styles.sqBtnSpecial, pressed && styles.sqBtnPressed]}
+            onPress={() => router.push(SPECIAL_SCREENS[key] as any)}
+          >
+            <Text style={styles.sqLabel}>
+              {key === 'transport' ? '📅 Расписания транспорта' : '▶ Открыть'}
+            </Text>
+            <Text style={styles.sqArrow}>›</Text>
+          </Pressable>
+        )}
         {topic.subquestions.map((sq, idx) => (
           <Pressable
             key={idx}
@@ -59,6 +74,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sqBtnPressed: { backgroundColor: '#f0f7ff' },
+  sqBtnSpecial: { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' },
   sqLabel: { fontSize: 15, flex: 1 },
   sqArrow: { fontSize: 20, color: '#aaa' },
 });
