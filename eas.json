@@ -43,14 +43,14 @@
   "submit": {
     "testflight": {
       "ios": {
-        "appleId": "alt@in2sys.fr",
-        "ascAppId": "6740479141"
+        "appleId": "alt@amazonka.biz",
+        "ascAppId": "6805457833"
       }
     },
     "production": {
       "ios": {
-        "appleId": "alt@in2sys.fr",
-        "ascAppId": "6740479141"
+        "appleId": "alt@amazonka.biz",
+        "ascAppId": "6805457833"
       },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
