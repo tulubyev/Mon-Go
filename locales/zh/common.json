@@ -11,6 +11,9 @@
     "subtitle": "蒙古旅游指南",
     "topics": "主题"
   },
+  "welcome": {
+    "comingSoon": "视频即将上线"
+  },
   "map": {
     "title": "地图",
     "categories": {

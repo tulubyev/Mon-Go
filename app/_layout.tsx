@@ -8,6 +8,7 @@ import { initI18n } from '@/lib/i18n';
 import { useTranslation } from 'react-i18next';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import WelcomeScreen from '@/components/WelcomeScreen';
 
 export {
   ErrorBoundary,
@@ -49,6 +50,11 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { t } = useTranslation();
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  if (showWelcome) {
+    return <WelcomeScreen onContinue={() => setShowWelcome(false)} />;
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

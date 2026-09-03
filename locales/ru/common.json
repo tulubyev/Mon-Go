@@ -11,6 +11,9 @@
     "subtitle": "Путеводитель по Монголии",
     "topics": "Разделы"
   },
+  "welcome": {
+    "comingSoon": "Скоро видео"
+  },
   "map": {
     "title": "Карта",
     "categories": {

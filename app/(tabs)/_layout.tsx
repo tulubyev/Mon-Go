@@ -19,7 +19,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Mon-Go',
+          headerShown: false,
           tabBarLabel: t('tabs.home'),
           tabBarIcon: ({ color }) => (
             <TabIcon emoji="🏠" color={color} />
@@ -30,10 +30,7 @@ export default function TabLayout() {
         name="map"
         options={{
           title: t('tabs.map'),
-          tabBarLabel: t('tabs.map'),
-          tabBarIcon: ({ color }) => (
-            <TabIcon emoji="🗺️" color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
@@ -50,20 +47,14 @@ export default function TabLayout() {
         name="chat"
         options={{
           title: t('tabs.chat'),
-          tabBarLabel: t('tabs.chat'),
-          tabBarIcon: ({ color }) => (
-            <TabIcon emoji="💬" color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
         name="ads"
         options={{
           title: t('tabs.ads'),
-          tabBarLabel: t('tabs.ads'),
-          tabBarIcon: ({ color }) => (
-            <TabIcon emoji="📋" color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
