@@ -14,6 +14,17 @@
   "welcome": {
     "comingSoon": "Скоро видео"
   },
+  "topicTitles": {
+    "transport": "Транспорт",
+    "accommodation": "Проживание",
+    "finance": "Финансы",
+    "communication": "Связь",
+    "language": "Монгольский язык",
+    "planning": "Планирование поездки",
+    "ulaanbaatar": "Улан-Батор",
+    "safety": "Безопасность",
+    "food": "Монгольская кухня"
+  },
   "map": {
     "title": "Карта",
     "categories": {

@@ -1,5 +1,6 @@
 import { StyleSheet, ScrollView, Pressable, Text, View, SafeAreaView } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { TOPICS } from '@/constants/topics';
 
 const SPECIAL_SCREENS: Record<string, string> = {
@@ -7,8 +8,9 @@ const SPECIAL_SCREENS: Record<string, string> = {
 };
 
 export default function TopicScreen() {
+  const { t } = useTranslation();
   const { key } = useLocalSearchParams<{ key: string }>();
-  const topic = TOPICS.find((t) => t.key === key);
+  const topic = TOPICS.find((tp) => tp.key === key);
 
   if (!topic) return (
     <View style={styles.center}>
@@ -18,7 +20,7 @@ export default function TopicScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: `${topic.icon} ${topic.title}` }} />
+      <Stack.Screen options={{ title: `${topic.icon} ${t(`topicTitles.${topic.key}`)}` }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.overview}>
           <Text style={styles.overviewText}>{topic.overview}</Text>

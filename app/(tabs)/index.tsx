@@ -59,7 +59,9 @@ export default function HomeScreen() {
             }}
           >
             <Text style={styles.cardIcon}>{item.icon}</Text>
-            <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+            <Text style={styles.cardTitle} numberOfLines={2}>
+              {'route' in item ? item.title : t(`topicTitles.${item.key}`)}
+            </Text>
           </Pressable>
         )}
       />

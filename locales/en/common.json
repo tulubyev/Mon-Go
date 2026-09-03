@@ -14,6 +14,17 @@
   "welcome": {
     "comingSoon": "Video coming soon"
   },
+  "topicTitles": {
+    "transport": "Transport",
+    "accommodation": "Accommodation",
+    "finance": "Finance",
+    "communication": "Communication",
+    "language": "Mongolian Language",
+    "planning": "Trip Planning",
+    "ulaanbaatar": "Ulaanbaatar",
+    "safety": "Safety",
+    "food": "Mongolian Cuisine"
+  },
   "map": {
     "title": "Map",
     "categories": {

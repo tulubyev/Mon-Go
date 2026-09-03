@@ -14,6 +14,17 @@
   "welcome": {
     "comingSoon": "视频即将上线"
   },
+  "topicTitles": {
+    "transport": "交通",
+    "accommodation": "住宿",
+    "finance": "财务",
+    "communication": "通讯",
+    "language": "蒙古语",
+    "planning": "行程规划",
+    "ulaanbaatar": "乌兰巴托",
+    "safety": "安全",
+    "food": "蒙古美食"
+  },
   "map": {
     "title": "地图",
     "categories": {
