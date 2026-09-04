@@ -4,7 +4,9 @@
     "map": "Map",
     "phrases": "Phrases",
     "chat": "Chat",
-    "ads": "Ads"
+    "ads": "Ads",
+    "wiki": "Wiki",
+    "partners": "Partners"
   },
   "home": {
     "title": "Mon-Go",
@@ -158,6 +160,43 @@
     "one": "star",
     "few": "stars",
     "many": "stars"
+  },
+  "wiki": {
+    "title": "Wiki",
+    "min": "min",
+    "community": "community",
+    "readMore": "Read more",
+    "notFound": "Article not found",
+    "newArticle": "New article",
+    "moderationNote": "The article will be sent to the admin for moderation",
+    "category": "Category",
+    "categoryHint": "E.g. Nature, Food...",
+    "icon": "Icon",
+    "color": "Category color",
+    "titleRu": "Title (RU)",
+    "summaryRu": "Short description (RU)",
+    "autoTranslated": "Other languages (auto-translated)",
+    "contact": "Contact (optional)",
+    "submit": "Submit for moderation",
+    "submitted": "Submitted!",
+    "submittedMsg": "Your article was sent for moderation. Thank you for contributing!",
+    "submitError": "Could not submit. Please try again.",
+    "requiredFields": "Please fill in the required fields: category, title (RU, 3+ chars), description (RU, 10+ chars)"
+  },
+  "partners": {
+    "title": "Partners",
+    "empty": "No partners yet",
+    "emptySub": "Tour agencies, guides and hotels will appear here soon",
+    "call": "Call",
+    "website": "Website",
+    "types": {
+      "all": "All",
+      "tour_agency": "Tour agencies",
+      "guide": "Guides",
+      "hotel": "Hotels",
+      "car_rental": "Car rental",
+      "visa": "Visa"
+    }
   },
   "transport": {
     "title": "Transport",

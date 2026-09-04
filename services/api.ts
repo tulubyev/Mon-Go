@@ -28,6 +28,67 @@ export interface POI {
   wifi?: boolean;
 }
 
+/** Row shape returned by GET /api/wiki/articles — flat per-locale columns. */
+export interface WikiDbArticle {
+  id: number;
+  category: string;
+  category_color?: string;
+  icon?: string;
+  title_ru: string;
+  title_en?: string;
+  title_zh?: string;
+  title_mn?: string;
+  summary_ru: string;
+  summary_en?: string;
+  summary_zh?: string;
+  summary_mn?: string;
+  image_url?: string;
+  read_min?: number;
+  created_at?: string;
+}
+
+export interface WikiSubmission {
+  category: string;
+  categoryColor?: string;
+  icon?: string;
+  titleRu: string;
+  titleEn?: string;
+  titleZh?: string;
+  titleMn?: string;
+  summaryRu: string;
+  summaryEn?: string;
+  summaryZh?: string;
+  summaryMn?: string;
+  imageUrl?: string;
+  contact?: string;
+}
+
+export interface Partner {
+  id: number;
+  name: string;
+  type?: string;
+  phone?: string;
+  email?: string;
+  url?: string;
+  telegram?: string;
+  whatsapp?: string;
+  description?: string;
+  lat?: number;
+  lng?: number;
+  address?: string;
+  subscription_tier?: string;
+  verified?: boolean;
+}
+
+export interface ExchangeRate {
+  id: number;
+  source: string;
+  currency_from: string;
+  rate_buy?: number;
+  rate_sell?: number;
+  updated_at?: string;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: { 'Content-Type': 'application/json' },
@@ -90,6 +151,21 @@ export const api = {
 
   getFlights: (direction: 'arrival' | 'departure') =>
     request<FlightInfo[]>(`/api/flights?direction=${direction}`),
+
+  getWikiArticles: (category?: string) =>
+    request<WikiDbArticle[]>(`/api/wiki/articles${category ? `?category=${encodeURIComponent(category)}` : ''}`),
+
+  submitWikiArticle: (submission: WikiSubmission) =>
+    request<{ success: boolean; id: number }>('/api/wiki/submissions', {
+      method: 'POST',
+      body: JSON.stringify(submission),
+    }),
+
+  getPartners: (type?: string, lang = 'ru') =>
+    request<Partner[]>(`/api/partners?lang=${lang}${type ? `&type=${type}` : ''}`),
+
+  getRates: (currency?: string) =>
+    request<ExchangeRate[]>(`/api/rates${currency ? `?currency=${currency}` : ''}`),
 };
 
 export interface TransportRoute {

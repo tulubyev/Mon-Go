@@ -20,9 +20,16 @@ export default function ChatScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ question?: string; label?: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [ratings, setRatings] = useState<Record<string, 'up' | 'down'>>({});
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const listRef = useRef<FlatList>(null);
+
+  const rate = useCallback(async (messageId: string, rating: 'up' | 'down') => {
+    if (ratings[messageId]) return;
+    setRatings(prev => ({ ...prev, [messageId]: rating }));
+    try { await api.feedback(messageId, rating); } catch { /* silent */ }
+  }, [ratings]);
 
   const send = useCallback(async (text: string) => {
     if (!text.trim() || loading) return;
@@ -84,10 +91,30 @@ export default function ChatScreen() {
           keyExtractor={m => m.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <View style={[styles.bubble, item.role === 'user' ? styles.userBubble : styles.botBubble]}>
-              <Text style={[styles.bubbleText, item.role === 'user' && styles.userText]}>
-                {item.text}
-              </Text>
+            <View style={styles.messageGroup}>
+              <View style={[styles.bubble, item.role === 'user' ? styles.userBubble : styles.botBubble]}>
+                <Text style={[styles.bubbleText, item.role === 'user' && styles.userText]}>
+                  {item.text}
+                </Text>
+              </View>
+              {item.role === 'assistant' && (
+                <View style={styles.feedbackRow}>
+                  <Pressable
+                    style={[styles.feedbackBtn, ratings[item.id] === 'up' && styles.feedbackBtnActive]}
+                    onPress={() => rate(item.id, 'up')}
+                    disabled={!!ratings[item.id]}
+                  >
+                    <Text style={styles.feedbackIcon}>👍</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.feedbackBtn, ratings[item.id] === 'down' && styles.feedbackBtnActiveDown]}
+                    onPress={() => rate(item.id, 'down')}
+                    disabled={!!ratings[item.id]}
+                  >
+                    <Text style={styles.feedbackIcon}>👎</Text>
+                  </Pressable>
+                </View>
+              )}
             </View>
           )}
         />
@@ -145,6 +172,12 @@ const styles = StyleSheet.create({
   botBubble: { borderBottomLeftRadius: 4 },
   bubbleText: { fontSize: 15, lineHeight: 22, color: '#333' },
   userText: { color: '#fff' },
+  messageGroup: { gap: 2 },
+  feedbackRow: { flexDirection: 'row', gap: 4, paddingLeft: 4 },
+  feedbackBtn: { padding: 4, borderRadius: 8, opacity: 0.5 },
+  feedbackBtnActive: { opacity: 1, backgroundColor: '#dcfce7' },
+  feedbackBtnActiveDown: { opacity: 1, backgroundColor: '#fee2e2' },
+  feedbackIcon: { fontSize: 15 },
   typing: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 6 },
   typingText: { fontSize: 13, color: '#888' },
   inputRow: {

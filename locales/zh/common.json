@@ -4,7 +4,9 @@
     "map": "地图",
     "phrases": "短语",
     "chat": "对话",
-    "ads": "广告"
+    "ads": "广告",
+    "wiki": "百科",
+    "partners": "合作伙伴"
   },
   "home": {
     "title": "蒙行",
@@ -158,6 +160,43 @@
     "one": "星",
     "few": "星",
     "many": "星"
+  },
+  "wiki": {
+    "title": "百科",
+    "min": "分钟",
+    "community": "社区",
+    "readMore": "阅读更多",
+    "notFound": "未找到文章",
+    "newArticle": "新文章",
+    "moderationNote": "文章将发送给管理员审核",
+    "category": "类别",
+    "categoryHint": "例如：自然、美食...",
+    "icon": "图标",
+    "color": "类别颜色",
+    "titleRu": "标题（俄文）",
+    "summaryRu": "简短描述（俄文）",
+    "autoTranslated": "其他语言（自动翻译）",
+    "contact": "联系方式（可选）",
+    "submit": "提交审核",
+    "submitted": "已提交！",
+    "submittedMsg": "文章已发送审核。感谢您的贡献！",
+    "submitError": "提交失败，请重试。",
+    "requiredFields": "请填写必填字段：类别、标题（俄文，至少3字符）、描述（俄文，至少10字符）"
+  },
+  "partners": {
+    "title": "合作伙伴",
+    "empty": "暂无合作伙伴",
+    "emptySub": "旅行社、导游和酒店即将上线",
+    "call": "拨打电话",
+    "website": "网站",
+    "types": {
+      "all": "全部",
+      "tour_agency": "旅行社",
+      "guide": "导游",
+      "hotel": "酒店",
+      "car_rental": "租车",
+      "visa": "签证"
+    }
   },
   "transport": {
     "title": "交通",
