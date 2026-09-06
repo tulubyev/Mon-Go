@@ -52,6 +52,12 @@
     "appleMaps": "Apple Maps",
     "googleMaps": "Google Maps",
     "twoGis": "2GIS",
+    "offlineDownload": "Офлайн газрын зураг татах",
+    "offlineDownloading": "Газрын зураг татаж байна",
+    "offlineReady": "Офлайн газрын зураг бэлэн",
+    "offlineError": "Алдаа — дахин оролдох",
+    "offlineRemoveTitle": "Офлайн газрын зургийг устгах уу?",
+    "offlineRemoveMsg": "Монголын газрын зураг төхөөрөмжөөс устгагдана. Онлайн газрын зураг ажиллах хэвээр.",
     "webFallback": {
       "title": "Интерактив газрын зураг",
       "subtitle": "iOS/Android апп-д боломжтой"
@@ -154,7 +160,9 @@
     "save": "Хадгалах",
     "cancel": "Цуцлах",
     "search": "Хайх",
-    "noData": "Мэдээлэл байхгүй"
+    "noData": "Мэдээлэл байхгүй",
+    "offline": "Интернэт байхгүй — хадгалсан мэдээлэл харуулж байна",
+    "delete": "Устгах"
   },
   "stars": {
     "one": "од",

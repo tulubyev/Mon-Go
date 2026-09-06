@@ -7,6 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
+import { OfflineBanner } from '@/components/OfflineBanner';
 
 interface Message {
   id: string;
@@ -71,6 +72,7 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <OfflineBanner />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

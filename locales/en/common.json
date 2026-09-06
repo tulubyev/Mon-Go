@@ -52,6 +52,12 @@
     "appleMaps": "Apple Maps",
     "googleMaps": "Google Maps",
     "twoGis": "2GIS",
+    "offlineDownload": "Download offline map",
+    "offlineDownloading": "Downloading map",
+    "offlineReady": "Offline map ready",
+    "offlineError": "Error — retry",
+    "offlineRemoveTitle": "Delete offline map?",
+    "offlineRemoveMsg": "The Mongolia map will be removed from this device. The online map will keep working.",
     "webFallback": {
       "title": "Interactive Map",
       "subtitle": "Available in the iOS/Android app"
@@ -154,7 +160,9 @@
     "save": "Save",
     "cancel": "Cancel",
     "search": "Search",
-    "noData": "No data"
+    "noData": "No data",
+    "offline": "No internet — showing saved data",
+    "delete": "Delete"
   },
   "stars": {
     "one": "star",

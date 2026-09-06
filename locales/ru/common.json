@@ -52,6 +52,12 @@
     "appleMaps": "Apple Maps",
     "googleMaps": "Google Maps",
     "twoGis": "2ГИС",
+    "offlineDownload": "Скачать карту offline",
+    "offlineDownloading": "Загрузка карты",
+    "offlineReady": "Карта offline готова",
+    "offlineError": "Ошибка — повторить",
+    "offlineRemoveTitle": "Удалить offline-карту?",
+    "offlineRemoveMsg": "Карта Монголии будет удалена с устройства. Онлайн-карта продолжит работать.",
     "webFallback": {
       "title": "Интерактивная карта",
       "subtitle": "Доступна в мобильном приложении iOS/Android"
@@ -154,7 +160,9 @@
     "save": "Сохранить",
     "cancel": "Отменить",
     "search": "Поиск",
-    "noData": "Нет данных"
+    "noData": "Нет данных",
+    "offline": "Нет интернета — показаны сохранённые данные",
+    "delete": "Удалить"
   },
   "stars": {
     "one": "звезда",

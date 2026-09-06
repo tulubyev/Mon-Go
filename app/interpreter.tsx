@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
+import { OfflineBanner } from '@/components/OfflineBanner';
 
 interface Response { mn: string; ru: string; }
 
@@ -117,6 +118,7 @@ export default function InterpreterScreen() {
         <Text style={styles.headerTitle}>🎙️ {t('interpreter.title')}</Text>
         <View style={{ width: 70 }} />
       </View>
+      <OfflineBanner />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.recordArea}>

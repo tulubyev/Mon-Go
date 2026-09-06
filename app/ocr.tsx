@@ -6,6 +6,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
+import { OfflineBanner } from '@/components/OfflineBanner';
 
 type Direction = 'to_ru' | 'to_mn';
 
@@ -65,6 +66,7 @@ export default function OCRScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <OfflineBanner />
       {/* Direction toggle */}
       <View style={styles.directionBar}>
         <Pressable

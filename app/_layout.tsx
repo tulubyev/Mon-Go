@@ -6,7 +6,10 @@ import 'react-native-reanimated';
 import '@/lib/i18n';
 import { initI18n } from '@/lib/i18n';
 import { useTranslation } from 'react-i18next';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/components/useColorScheme';
@@ -23,6 +26,13 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
     },
   },
+});
+
+// Persist the cache to disk so Wiki/Partners/rates survive an app restart —
+// closing the app is the common case out in the steppe, not just backgrounding it.
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+  key: 'mongo-query-cache',
 });
 
 export {
@@ -76,7 +86,7 @@ function RootLayoutNav() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -88,6 +98,6 @@ function RootLayoutNav() {
           <Stack.Screen name="wiki/[id]" options={{ headerShown: false }} />
         </Stack>
       </ThemeProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

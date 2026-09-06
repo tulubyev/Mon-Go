@@ -1,9 +1,11 @@
-import { Platform, StyleSheet, Text, View, Pressable, ScrollView, Linking, ActivityIndicator } from 'react-native';
+import { Platform, StyleSheet, Text, View, Pressable, ScrollView, Linking, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, POI } from '@/services/api';
 import { MAX_CARD_WIDTH } from '@/constants/Layout';
+import { useOfflineMapPack, MAP_STYLE_URL } from '@/hooks/useOfflineMapPack';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 // v11 named exports — no default export, no setAccessToken
 const MapLibreGL = Platform.OS !== 'web' ? require('@maplibre/maplibre-react-native') : null;
@@ -39,6 +41,8 @@ function MapNativeScreen() {
   const [selected, setSelected] = useState<POI | null>(null);
   const [userLocationVisible, setUserLocationVisible] = useState(false);
   const insets = useSafeAreaInsets();
+  const isOnline = useNetworkStatus();
+  const offlinePack = useOfflineMapPack();
 
   useEffect(() => {
     api.getPOI('all').then(setPois).catch(() => {}).finally(() => setLoading(false));
@@ -52,12 +56,10 @@ function MapNativeScreen() {
     ? pois
     : pois.filter(p => p.category === activeCategory);
 
-  const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-  const mapStyle = {
-    version: 8 as const,
-    sources: { osm: { type: 'raster' as const, tiles: [TILE_URL], tileSize: 256, attribution: '© OpenStreetMap' } },
-    layers: [{ id: 'osm', type: 'raster' as const, source: 'osm' }],
-  };
+  // Hosted style JSON (not an inline object) — OfflineManager.createPack needs
+  // a real URL it can resolve itself, so the live map and the offline pack
+  // share the exact same style/tile source instead of drifting apart.
+  const mapStyle = MAP_STYLE_URL;
 
   const { Map, Camera, UserLocation, Marker } = MapLibreGL;
 
@@ -111,9 +113,62 @@ function MapNativeScreen() {
         </View>
       )}
 
+      {/* Offline map pack — Mongolia has no signal outside the cities */}
+      <OfflineMapControl pack={offlinePack} isOnline={isOnline} topOffset={insets.top + 60} />
+
       {/* InfoCard */}
       {selected && <InfoCard poi={selected} onClose={() => setSelected(null)} />}
     </View>
+  );
+}
+
+// ─── Offline map pack control ────────────────────────────────────────────────
+function OfflineMapControl({
+  pack, isOnline, topOffset,
+}: {
+  pack: ReturnType<typeof useOfflineMapPack>;
+  isOnline: boolean;
+  topOffset: number;
+}) {
+  const { t } = useTranslation();
+
+  if (pack.status === 'checking') return null;
+
+  const confirmRemove = () => {
+    Alert.alert(t('map.offlineRemoveTitle'), t('map.offlineRemoveMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: pack.remove },
+    ]);
+  };
+
+  if (pack.status === 'complete') {
+    return (
+      <Pressable style={[styles.offlineBadge, styles.offlineBadgeReady, { top: topOffset }]} onPress={confirmRemove}>
+        <Text style={styles.offlineBadgeText}>✓ {t('map.offlineReady')}</Text>
+      </Pressable>
+    );
+  }
+
+  if (pack.status === 'downloading') {
+    return (
+      <View style={[styles.offlineBadge, { top: topOffset }]}>
+        <Text style={styles.offlineBadgeText}>
+          ⬇️ {t('map.offlineDownloading')} {pack.progress}%
+        </Text>
+      </View>
+    );
+  }
+
+  // 'none' or 'error' — offer to (re)start. Downloading needs a live connection,
+  // so hide the offer entirely while offline rather than let it fail silently.
+  if (!isOnline) return null;
+
+  return (
+    <Pressable style={[styles.offlineBadge, { top: topOffset }]} onPress={pack.download}>
+      <Text style={styles.offlineBadgeText}>
+        ⬇️ {pack.status === 'error' ? t('map.offlineError') : t('map.offlineDownload')}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -253,6 +308,9 @@ const styles = StyleSheet.create({
   markerIcon: { fontSize: 24 },
   loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)' },
   countBadge: { position: 'absolute', top: 60, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  offlineBadge: { position: 'absolute', left: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  offlineBadgeReady: { backgroundColor: 'rgba(21,128,61,0.85)' },
+  offlineBadgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   countText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   // InfoCard — wrapper spans full width to center the capped inner card (iPad:
   // absolute + left:0/right:0 would otherwise force full-bleed width regardless

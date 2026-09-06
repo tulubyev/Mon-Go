@@ -52,6 +52,12 @@
     "appleMaps": "苹果地图",
     "googleMaps": "谷歌地图",
     "twoGis": "2GIS",
+    "offlineDownload": "下载离线地图",
+    "offlineDownloading": "正在下载地图",
+    "offlineReady": "离线地图已就绪",
+    "offlineError": "出错 — 重试",
+    "offlineRemoveTitle": "删除离线地图？",
+    "offlineRemoveMsg": "蒙古地图将从设备中删除。在线地图仍可正常使用。",
     "webFallback": {
       "title": "互动地图",
       "subtitle": "在iOS/Android应用中查看"
@@ -154,7 +160,9 @@
     "save": "保存",
     "cancel": "取消",
     "search": "搜索",
-    "noData": "暂无数据"
+    "noData": "暂无数据",
+    "offline": "无网络连接 — 显示已保存的数据",
+    "delete": "删除"
   },
   "stars": {
     "one": "星",
