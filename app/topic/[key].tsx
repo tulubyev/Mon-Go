@@ -1,7 +1,9 @@
-import { StyleSheet, ScrollView, Pressable, Text, View, SafeAreaView } from 'react-native';
+import { StyleSheet, ScrollView, Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { TOPICS } from '@/constants/topics';
+import { readingContainerStyle } from '@/constants/Layout';
 
 const SPECIAL_SCREENS: Record<string, string> = {
   transport: '/transport',
@@ -61,7 +63,7 @@ export default function TopicScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { padding: 16, gap: 10 },
+  scroll: { padding: 16, gap: 10, ...readingContainerStyle },
   overview: { backgroundColor: '#f5f9ff', borderRadius: 12, padding: 14, marginBottom: 8 },
   overviewText: { fontSize: 14, lineHeight: 22, color: '#333' },
   subheading: { fontSize: 13, fontWeight: '600', color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 },

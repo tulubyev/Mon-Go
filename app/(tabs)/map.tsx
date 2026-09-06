@@ -1,7 +1,9 @@
 import { Platform, StyleSheet, Text, View, Pressable, ScrollView, Linking, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, POI } from '@/services/api';
+import { MAX_CARD_WIDTH } from '@/constants/Layout';
 
 // v11 named exports — no default export, no setAccessToken
 const MapLibreGL = Platform.OS !== 'web' ? require('@maplibre/maplibre-react-native') : null;
@@ -36,6 +38,7 @@ function MapNativeScreen() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selected, setSelected] = useState<POI | null>(null);
   const [userLocationVisible, setUserLocationVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     api.getPOI('all').then(setPois).catch(() => {}).finally(() => setLoading(false));
@@ -61,7 +64,7 @@ function MapNativeScreen() {
   return (
     <View style={styles.container}>
       {/* Category filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filterContent}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.filterBar, { maxHeight: 52 + insets.top, paddingTop: insets.top }]} contentContainerStyle={styles.filterContent}>
         {CATEGORIES.map(cat => (
           <Pressable
             key={cat.key}
@@ -103,7 +106,7 @@ function MapNativeScreen() {
 
       {/* POI count badge */}
       {!loading && (
-        <View style={styles.countBadge}>
+        <View style={[styles.countBadge, { top: insets.top + 60 }]}>
           <Text style={styles.countText}>{filtered.length} {t('map.objects')}</Text>
         </View>
       )}
@@ -131,43 +134,45 @@ function InfoCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
   };
 
   return (
-    <View style={styles.infoCard}>
-      <View style={styles.infoCardHandle} />
-      <View style={styles.infoCardHeader}>
-        <Text style={styles.infoCardIcon}>{poi.icon || '📍'}</Text>
-        <View style={styles.infoCardTitles}>
-          <Text style={styles.infoCardName}>{poi.name_ru || poi.name}</Text>
-          <Text style={styles.infoCardCategory}>{catLabel}</Text>
+    <View style={styles.infoCardWrapper} pointerEvents="box-none">
+      <View style={styles.infoCard}>
+        <View style={styles.infoCardHandle} />
+        <View style={styles.infoCardHeader}>
+          <Text style={styles.infoCardIcon}>{poi.icon || '📍'}</Text>
+          <View style={styles.infoCardTitles}>
+            <Text style={styles.infoCardName}>{poi.name_ru || poi.name}</Text>
+            <Text style={styles.infoCardCategory}>{catLabel}</Text>
+          </View>
+          <Pressable onPress={onClose} style={styles.closeBtn}>
+            <Text style={styles.closeBtnText}>✕</Text>
+          </Pressable>
         </View>
-        <Pressable onPress={onClose} style={styles.closeBtn}>
-          <Text style={styles.closeBtnText}>✕</Text>
-        </Pressable>
-      </View>
 
-      {poi.description && (
-        <Text style={styles.infoCardDesc}>{poi.description}</Text>
-      )}
-
-      <View style={styles.infoCardMeta}>
-        {poi.hours && <InfoRow icon="🕐" text={poi.hours} />}
-        {poi.price && <InfoRow icon="💰" text={poi.price} />}
-        {poi.phone && <InfoRow icon="📞" text={poi.phone} />}
-      </View>
-
-      <View style={styles.infoCardActions}>
-        {poi.phone && (
-          <Pressable style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${poi.phone}`)}>
-            <Text style={styles.actionBtnText}>📞 {t('map.call')}</Text>
-          </Pressable>
+        {poi.description && (
+          <Text style={styles.infoCardDesc}>{poi.description}</Text>
         )}
-        <Pressable style={[styles.actionBtn, styles.actionBtnPrimary]} onPress={openDirections}>
-          <Text style={[styles.actionBtnText, styles.actionBtnTextPrimary]}>📍 {t('map.route')}</Text>
-        </Pressable>
-        {poi.url && (
-          <Pressable style={styles.actionBtn} onPress={() => Linking.openURL(poi.url!)}>
-            <Text style={styles.actionBtnText}>🌐 {t('map.website')}</Text>
+
+        <View style={styles.infoCardMeta}>
+          {poi.hours && <InfoRow icon="🕐" text={poi.hours} />}
+          {poi.price && <InfoRow icon="💰" text={poi.price} />}
+          {poi.phone && <InfoRow icon="📞" text={poi.phone} />}
+        </View>
+
+        <View style={styles.infoCardActions}>
+          {poi.phone && (
+            <Pressable style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${poi.phone}`)}>
+              <Text style={styles.actionBtnText}>📞 {t('map.call')}</Text>
+            </Pressable>
+          )}
+          <Pressable style={[styles.actionBtn, styles.actionBtnPrimary]} onPress={openDirections}>
+            <Text style={[styles.actionBtnText, styles.actionBtnTextPrimary]}>📍 {t('map.route')}</Text>
           </Pressable>
-        )}
+          {poi.url && (
+            <Pressable style={styles.actionBtn} onPress={() => Linking.openURL(poi.url!)}>
+              <Text style={styles.actionBtnText}>🌐 {t('map.website')}</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -249,8 +254,11 @@ const styles = StyleSheet.create({
   loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)' },
   countBadge: { position: 'absolute', top: 60, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   countText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  // InfoCard
-  infoCard: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, paddingBottom: 32, shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 10 },
+  // InfoCard — wrapper spans full width to center the capped inner card (iPad:
+  // absolute + left:0/right:0 would otherwise force full-bleed width regardless
+  // of alignSelf on the card itself).
+  infoCardWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center' },
+  infoCard: { width: '100%', maxWidth: MAX_CARD_WIDTH, backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, paddingBottom: 32, shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 10 },
   infoCardHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#ddd', alignSelf: 'center', marginBottom: 12 },
   infoCardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
   infoCardIcon: { fontSize: 28 },

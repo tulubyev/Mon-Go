@@ -1,9 +1,12 @@
-import { StyleSheet, FlatList, Pressable, Text, View, SafeAreaView } from 'react-native';
+import { StyleSheet, FlatList, Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TOPICS } from '@/constants/topics';
 import { changeLanguage, getCurrentLanguage } from '@/lib/i18n';
+import { useResponsiveColumns } from '@/components/useResponsiveColumns';
+import { GRID_MIN_CARD_WIDTH } from '@/constants/Layout';
 
 const LANGUAGES = [
   { code: 'ru' as const, flag: '🇷🇺' },
@@ -15,6 +18,7 @@ const LANGUAGES = [
 export default function HomeScreen() {
   const { t } = useTranslation();
   const [current, setCurrent] = useState(getCurrentLanguage());
+  const numColumns = useResponsiveColumns(GRID_MIN_CARD_WIDTH, 6);
 
   const gridData = [
     ...TOPICS,
@@ -45,9 +49,10 @@ export default function HomeScreen() {
         <Text style={styles.headerSub}>Travel Mongolia</Text>
       </View>
       <FlatList
+        key={numColumns}
         data={gridData}
         keyExtractor={(item) => item.key}
-        numColumns={3}
+        numColumns={numColumns}
         contentContainerStyle={styles.grid}
         renderItem={({ item }) => (
           <Pressable

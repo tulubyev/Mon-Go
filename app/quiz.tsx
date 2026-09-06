@@ -5,6 +5,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { PHRASE_SECTIONS, Phrase } from '@/constants/phrases';
+import { MAX_CONTENT_WIDTH } from '@/constants/Layout';
 
 // Flatten all phrases with section info
 const ALL_PHRASES: (Phrase & { section: string })[] = PHRASE_SECTIONS.flatMap(s =>
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   pctText: { fontSize: 14, fontWeight: '700' },
   exitBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: '#f5f5f5' },
   exitBtnText: { fontSize: 13, color: '#666', fontWeight: '600' },
-  card: { flex: 1, alignItems: 'center', paddingHorizontal: 20, paddingTop: 32 },
+  card: { flex: 1, alignItems: 'center', paddingHorizontal: 20, paddingTop: 32, width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center' },
   sectionLabel: { fontSize: 13, color: '#888', marginBottom: 20 },
   playBtn: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#3b82f6', alignItems: 'center', justifyContent: 'center', shadowColor: '#3b82f6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 8 },
   playBtnActive: { backgroundColor: '#93c5fd' },

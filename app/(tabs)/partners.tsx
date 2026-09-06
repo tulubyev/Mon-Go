@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
-  StyleSheet, ScrollView, Pressable, Text, View, SafeAreaView,
+  StyleSheet, ScrollView, Pressable, Text, View,
   Linking, ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';

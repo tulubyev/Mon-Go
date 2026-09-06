@@ -1,8 +1,10 @@
-import { StyleSheet, ScrollView, Text, View, SafeAreaView, Pressable } from 'react-native';
+import { StyleSheet, ScrollView, Text, View, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { WIKI_ARTICLES, wikiCategoryLabel, type WikiLocale } from '@/constants/wiki';
+import { readingContainerStyle } from '@/constants/Layout';
 
 /**
  * Renders a very small subset of Markdown used by the article bodies:
@@ -93,7 +95,7 @@ const styles = StyleSheet.create({
   catText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   readTime: { marginLeft: 'auto', fontSize: 12, color: '#94A3B8' },
 
-  body: { padding: 20 },
+  body: { padding: 20, ...readingContainerStyle },
   title: { fontSize: 26, fontWeight: '800', color: '#0F172A', lineHeight: 34, marginBottom: 12 },
   summary: { fontSize: 15, color: '#64748B', lineHeight: 23, marginBottom: 16 },
   divider: { height: 2, borderRadius: 1, marginBottom: 20 },

@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import {
   StyleSheet, Text, View, Pressable, ScrollView, Modal,
-  Platform, ActivityIndicator, SafeAreaView, Alert,
+  Platform, ActivityIndicator, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';

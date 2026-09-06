@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet, Text, View, Pressable, ScrollView, RefreshControl,
-  ActivityIndicator, Linking, SafeAreaView,
+  ActivityIndicator, Linking,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api, TransportRoute, FlightInfo } from '@/services/api';
+import { readingContainerStyle } from '@/constants/Layout';
 
 type Tab = 'airport' | 'trains' | 'buses';
 type FlightDir = 'arrival' | 'departure';
@@ -439,7 +441,7 @@ const styles = StyleSheet.create({
   dirBtnText: { fontSize: 13, fontWeight: '600', color: '#555' },
   dirBtnTextActive: { color: '#fff' },
   scroll: { flex: 1 },
-  scrollContent: { padding: 12, gap: 8 },
+  scrollContent: { padding: 12, gap: 8, ...readingContainerStyle },
   spinner: { marginTop: 48 },
 
   // Airport

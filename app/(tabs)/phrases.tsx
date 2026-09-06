@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { PHRASE_SECTIONS, Phrase } from '@/constants/phrases';
 import { api } from '@/services/api';
+import { readingContainerStyle } from '@/constants/Layout';
 
 export default function PhrasesScreen() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function PhrasesScreen() {
         </View>
         <Text style={styles.headerSub}>{PHRASE_SECTIONS.length} {t('phrases.sections')} · {t('phrases.tapToPlay')}</Text>
       </View>
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scroll} contentContainerStyle={readingContainerStyle} showsVerticalScrollIndicator={false}>
         {PHRASE_SECTIONS.map((section, si) => {
           const isOpen = expanded.has(si);
           return (

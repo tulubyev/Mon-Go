@@ -1,7 +1,8 @@
 import {
   StyleSheet, FlatList, TextInput, Pressable, Text, View,
-  KeyboardAvoidingView, Platform, SafeAreaView, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -158,7 +159,9 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 18, fontWeight: '700', textAlign: 'center' },
   emptySub: { fontSize: 14, color: '#888', textAlign: 'center', lineHeight: 20 },
   bubble: {
-    maxWidth: '80%',
+    // Absolute cap, not '80%' — on iPad's ~1024pt width that would read as an
+    // ~800px-wide chat bubble. 320 stays comfortable to read at any width.
+    maxWidth: 320,
     padding: 12,
     borderRadius: 16,
     backgroundColor: '#f0f4ff',

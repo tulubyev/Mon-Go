@@ -7,6 +7,7 @@ import '@/lib/i18n';
 import { initI18n } from '@/lib/i18n';
 import { useTranslation } from 'react-i18next';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import WelcomeScreen from '@/components/WelcomeScreen';
@@ -58,7 +59,11 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <SafeAreaProvider>
+      <RootLayoutNav />
+    </SafeAreaProvider>
+  );
 }
 
 function RootLayoutNav() {
