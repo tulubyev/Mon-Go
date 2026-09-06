@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
     "ios": {
-      "supportsTablet": false,
+      "supportsTablet": true,
       "bundleIdentifier": "com.tulubyev.mongo",
       "infoPlist": {
         "NSCameraUsageDescription": "Камера нужна для распознавания текста на монгольском языке (OCR переводчик)",
