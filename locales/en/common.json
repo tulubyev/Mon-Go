@@ -110,6 +110,21 @@
       "mn": "Монгол"
     }
   },
+  "subscription": {
+    "current": "Current plan",
+    "until": "until",
+    "cancel": "Cancel subscription",
+    "cancelTitle": "Cancel subscription?",
+    "cancelMsg": "Your plan reverts to Free immediately.",
+    "month": "mo",
+    "active": "Active",
+    "subscribe": "Subscribe",
+    "confirmMsg": "Pay ₽{{price}}. Continue?",
+    "pay": "Pay",
+    "success": "Subscription activated!",
+    "canceled": "Payment canceled",
+    "error": "Could not complete the operation"
+  },
   "auth": {
     "loginTitle": "Log in",
     "registerTitle": "Sign up",

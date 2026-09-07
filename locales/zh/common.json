@@ -110,6 +110,21 @@
       "mn": "Монгол"
     }
   },
+  "subscription": {
+    "current": "当前套餐",
+    "until": "至",
+    "cancel": "取消订阅",
+    "cancelTitle": "取消订阅？",
+    "cancelMsg": "套餐将立即恢复为免费版。",
+    "month": "月",
+    "active": "已激活",
+    "subscribe": "订阅",
+    "confirmMsg": "支付 {{price}} 卢布。继续吗？",
+    "pay": "支付",
+    "success": "订阅已激活！",
+    "canceled": "支付已取消",
+    "error": "操作失败"
+  },
   "auth": {
     "loginTitle": "登录",
     "registerTitle": "注册",

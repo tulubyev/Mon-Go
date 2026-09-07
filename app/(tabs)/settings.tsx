@@ -158,7 +158,7 @@ function ProfileSection({ user, onLogout, onRefresh }: {
 
       <View style={styles.section}>
         <MenuRow label={t('auth.changePassword')} icon="🔒" onPress={() => router.push('/change-password' as any)} />
-        <MenuRow label={t('auth.subscription')} icon="⭐" onPress={notReady} />
+        <MenuRow label={t('auth.subscription')} icon="⭐" onPress={() => router.push('/subscription' as any)} />
         <MenuRow label={t('auth.favorites')} icon="📍" onPress={notReady} last />
       </View>
     </>

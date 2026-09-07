@@ -257,7 +257,28 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+
+  getSubscriptionPlans: () => request<SubscriptionPlan[]>('/api/subscriptions/plans'),
+
+  createPayment: (tier: string) =>
+    request<{ confirmationUrl: string; paymentId: string }>('/api/subscriptions/create-payment', {
+      method: 'POST',
+      body: JSON.stringify({ tier }),
+    }),
+
+  getPaymentStatus: (paymentId: string) =>
+    request<{ status: 'pending' | 'succeeded' | 'canceled' }>(`/api/subscriptions/payment-status/${encodeURIComponent(paymentId)}`),
+
+  cancelSubscription: () =>
+    request<{ success: boolean }>('/api/subscriptions/cancel', { method: 'POST' }),
 };
+
+export interface SubscriptionPlan {
+  id: 'basic' | 'premium' | 'b2b';
+  nameRu: string;
+  priceRub: number;
+  features: string[];
+}
 
 export interface TransportRoute {
   id: number;
