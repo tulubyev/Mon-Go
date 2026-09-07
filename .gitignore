@@ -30,8 +30,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# local env files — this app has no server secrets of its own, but ignore
+# broadly anyway (caught a stray .env.rtf of TMB credentials once already)
+.env*
 
 # typescript
 *.tsbuildinfo
