@@ -110,6 +110,29 @@
       "mn": "Монгол"
     }
   },
+  "auth": {
+    "loginTitle": "Log in",
+    "registerTitle": "Sign up",
+    "verifyTitle": "Verify",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "passwordHint": "At least 6 characters",
+    "login": "Log in",
+    "loginError": "Could not log in",
+    "register": "Sign up",
+    "registerError": "Could not sign up",
+    "noAccount": "No account?",
+    "hasAccount": "Already have an account?",
+    "registerLink": "Sign up",
+    "loginLink": "Log in",
+    "verifySubtitle": "We sent a code to {{email}}",
+    "verify": "Verify",
+    "verifyError": "Code is invalid or expired",
+    "resendCode": "Resend code",
+    "codeResent": "Code sent again"
+  },
   "interpreter": {
     "title": "Live Interpreter",
     "hold": "Hold to record",
@@ -162,7 +185,8 @@
     "search": "Search",
     "noData": "No data",
     "offline": "No internet — showing saved data",
-    "delete": "Delete"
+    "delete": "Delete",
+    "logout": "Log out"
   },
   "stars": {
     "one": "star",

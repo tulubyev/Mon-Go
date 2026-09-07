@@ -110,6 +110,29 @@
       "mn": "Монгол"
     }
   },
+  "auth": {
+    "loginTitle": "Нэвтрэх",
+    "registerTitle": "Бүртгүүлэх",
+    "verifyTitle": "Баталгаажуулах",
+    "email": "Имэйл",
+    "password": "Нууц үг",
+    "firstName": "Нэр",
+    "lastName": "Овог",
+    "passwordHint": "6-с дээш тэмдэгт",
+    "login": "Нэвтрэх",
+    "loginError": "Нэвтрэх боломжгүй",
+    "register": "Бүртгүүлэх",
+    "registerError": "Бүртгүүлэх боломжгүй",
+    "noAccount": "Бүртгэл байхгүй юу?",
+    "hasAccount": "Бүртгэлтэй юу?",
+    "registerLink": "Бүртгүүлэх",
+    "loginLink": "Нэвтрэх",
+    "verifySubtitle": "{{email}} хаяг руу код илгээлээ",
+    "verify": "Баталгаажуулах",
+    "verifyError": "Код буруу эсвэл хугацаа дууссан",
+    "resendCode": "Кодыг дахин илгээх",
+    "codeResent": "Код дахин илгээгдлээ"
+  },
   "interpreter": {
     "title": "Шууд орчуулагч",
     "hold": "Дарж хэлнэ үү",
@@ -162,7 +185,8 @@
     "search": "Хайх",
     "noData": "Мэдээлэл байхгүй",
     "offline": "Интернэт байхгүй — хадгалсан мэдээлэл харуулж байна",
-    "delete": "Устгах"
+    "delete": "Устгах",
+    "logout": "Гарах"
   },
   "stars": {
     "one": "од",

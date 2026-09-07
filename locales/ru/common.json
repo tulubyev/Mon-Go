@@ -110,6 +110,29 @@
       "mn": "Монгол"
     }
   },
+  "auth": {
+    "loginTitle": "Вход",
+    "registerTitle": "Регистрация",
+    "verifyTitle": "Подтверждение",
+    "email": "Email",
+    "password": "Пароль",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "passwordHint": "Не короче 6 символов",
+    "login": "Войти",
+    "loginError": "Не удалось войти",
+    "register": "Зарегистрироваться",
+    "registerError": "Не удалось зарегистрироваться",
+    "noAccount": "Нет аккаунта?",
+    "hasAccount": "Уже есть аккаунт?",
+    "registerLink": "Зарегистрироваться",
+    "loginLink": "Войти",
+    "verifySubtitle": "Мы отправили код на {{email}}",
+    "verify": "Подтвердить",
+    "verifyError": "Код неверен или истёк",
+    "resendCode": "Отправить код ещё раз",
+    "codeResent": "Код отправлен повторно"
+  },
   "interpreter": {
     "title": "Живой переводчик",
     "hold": "Держи для записи",
@@ -162,7 +185,8 @@
     "search": "Поиск",
     "noData": "Нет данных",
     "offline": "Нет интернета — показаны сохранённые данные",
-    "delete": "Удалить"
+    "delete": "Удалить",
+    "logout": "Выйти"
   },
   "stars": {
     "one": "звезда",

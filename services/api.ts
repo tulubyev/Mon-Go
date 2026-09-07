@@ -89,13 +89,53 @@ export interface ExchangeRate {
   updated_at?: string;
 }
 
+export interface AuthUser {
+  id: number;
+  email: string;
+  phone: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  nickname: string | null;
+  avatarUrl: string | null;
+  role: string;
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  preferredLanguage: string | null;
+  subscriptionTier: string | null;
+  subscriptionExpires: string | null;
+}
+
+// Set by AuthContext once a token is loaded/obtained — every request() call
+// after that carries it, so screens never have to thread it through by hand.
+let authToken: string | null = null;
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      ...options?.headers,
+    },
   });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return response.json();
+  // Auth routes return { message } on errors — surface it instead of a bare
+  // status code so login/register screens can show the real reason.
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new ApiError(response.status, data?.message || `API error ${response.status}`);
+  }
+  return data as T;
 }
 
 export const api = {
@@ -166,6 +206,50 @@ export const api = {
 
   getRates: (currency?: string) =>
     request<ExchangeRate[]>(`/api/rates${currency ? `?currency=${currency}` : ''}`),
+
+  register: (data: { email: string; password: string; firstName: string; lastName?: string; phone?: string }) =>
+    request<{ email: string; requiresVerification: boolean }>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  login: (email: string, password: string) =>
+    request<{ token: string; user: AuthUser }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+
+  getMe: () => request<AuthUser>('/api/auth/me'),
+
+  sendCode: (identifier: string, type: 'email' = 'email') =>
+    request<{ success: boolean }>('/api/auth/send-code', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, type }),
+    }),
+
+  verifyCode: (identifier: string, code: string, type: 'email' = 'email') =>
+    request<{ success: boolean; token: string | null; user: AuthUser | null }>('/api/auth/verify-code', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, code, type }),
+    }),
+
+  updateAvatar: (photoData: string) =>
+    request<{ success: boolean }>('/api/auth/avatar', {
+      method: 'PUT',
+      body: JSON.stringify({ photoData }),
+    }),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<{ success: boolean }>('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+
+  updateProfile: (data: { firstName?: string; lastName?: string; nickname?: string; preferredLanguage?: string }) =>
+    request<AuthUser>('/api/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
 };
 
 export interface TransportRoute {

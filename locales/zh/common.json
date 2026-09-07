@@ -110,6 +110,29 @@
       "mn": "Монгол"
     }
   },
+  "auth": {
+    "loginTitle": "登录",
+    "registerTitle": "注册",
+    "verifyTitle": "验证",
+    "email": "电子邮箱",
+    "password": "密码",
+    "firstName": "名字",
+    "lastName": "姓氏",
+    "passwordHint": "至少6个字符",
+    "login": "登录",
+    "loginError": "登录失败",
+    "register": "注册",
+    "registerError": "注册失败",
+    "noAccount": "还没有账号？",
+    "hasAccount": "已有账号？",
+    "registerLink": "注册",
+    "loginLink": "登录",
+    "verifySubtitle": "验证码已发送至 {{email}}",
+    "verify": "验证",
+    "verifyError": "验证码错误或已过期",
+    "resendCode": "重新发送验证码",
+    "codeResent": "验证码已重新发送"
+  },
   "interpreter": {
     "title": "实时翻译",
     "hold": "按住录音",
@@ -162,7 +185,8 @@
     "search": "搜索",
     "noData": "暂无数据",
     "offline": "无网络连接 — 显示已保存的数据",
-    "delete": "删除"
+    "delete": "删除",
+    "logout": "退出登录"
   },
   "stars": {
     "one": "星",

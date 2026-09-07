@@ -24,6 +24,7 @@
     "expo-localization": "~57.0.1",
     "expo-location": "^57.0.11",
     "expo-router": "~57.0.14",
+    "expo-secure-store": "~57.0.3",
     "expo-speech": "~57.0.1",
     "expo-splash-screen": "~57.0.7",
     "expo-status-bar": "~57.0.1",
