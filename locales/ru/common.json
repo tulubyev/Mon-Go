@@ -131,7 +131,19 @@
     "verify": "Подтвердить",
     "verifyError": "Код неверен или истёк",
     "resendCode": "Отправить код ещё раз",
-    "codeResent": "Код отправлен повторно"
+    "codeResent": "Код отправлен повторно",
+    "changePassword": "Сменить пароль",
+    "currentPassword": "Текущий пароль",
+    "newPassword": "Новый пароль",
+    "confirmPassword": "Повторите пароль",
+    "passwordMismatch": "Пароли не совпадают",
+    "save": "Сохранить",
+    "passwordChanged": "Пароль изменён",
+    "passwordChangeError": "Не удалось изменить пароль",
+    "emailNotVerified": "Email не подтверждён — нажмите, чтобы подтвердить",
+    "subscription": "Подписка",
+    "favorites": "Избранное",
+    "comingSoon": "Скоро появится"
   },
   "interpreter": {
     "title": "Живой переводчик",

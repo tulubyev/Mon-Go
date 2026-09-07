@@ -131,7 +131,19 @@
     "verify": "Баталгаажуулах",
     "verifyError": "Код буруу эсвэл хугацаа дууссан",
     "resendCode": "Кодыг дахин илгээх",
-    "codeResent": "Код дахин илгээгдлээ"
+    "codeResent": "Код дахин илгээгдлээ",
+    "changePassword": "Нууц үг солих",
+    "currentPassword": "Одоогийн нууц үг",
+    "newPassword": "Шинэ нууц үг",
+    "confirmPassword": "Нууц үгээ давтана уу",
+    "passwordMismatch": "Нууц үг таарахгүй байна",
+    "save": "Хадгалах",
+    "passwordChanged": "Нууц үг солигдлоо",
+    "passwordChangeError": "Нууц үг солиход алдаа гарлаа",
+    "emailNotVerified": "Имэйл баталгаажаагүй — дарж баталгаажуулна уу",
+    "subscription": "Захиалга",
+    "favorites": "Хадгалсан",
+    "comingSoon": "Тун удахгүй"
   },
   "interpreter": {
     "title": "Шууд орчуулагч",

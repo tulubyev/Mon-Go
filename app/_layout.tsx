@@ -99,6 +99,7 @@ function RootLayoutNav() {
             <Stack.Screen name="interpreter" options={{ title: t('interpreter.title'), headerBackTitle: t('common.back'), headerShown: false }} />
             <Stack.Screen name="transport" options={{ headerShown: false }} />
             <Stack.Screen name="wiki/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="change-password" options={{ title: t('auth.changePassword'), headerBackTitle: t('common.back') }} />
           </Stack>
         </ThemeProvider>
       </AuthProvider>

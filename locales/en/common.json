@@ -131,7 +131,19 @@
     "verify": "Verify",
     "verifyError": "Code is invalid or expired",
     "resendCode": "Resend code",
-    "codeResent": "Code sent again"
+    "codeResent": "Code sent again",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "Passwords don't match",
+    "save": "Save",
+    "passwordChanged": "Password changed",
+    "passwordChangeError": "Could not change password",
+    "emailNotVerified": "Email not verified — tap to verify",
+    "subscription": "Subscription",
+    "favorites": "Favorites",
+    "comingSoon": "Coming soon"
   },
   "interpreter": {
     "title": "Live Interpreter",
