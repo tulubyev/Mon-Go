@@ -14,7 +14,11 @@
     "topics": "主题"
   },
   "welcome": {
-    "comingSoon": "视频即将上线"
+    "comingSoon": "视频即将上线",
+    "checking": "正在检查连接…",
+    "offTitle": "无法连接服务器",
+    "offSub": "部分功能离线不可用",
+    "retry": "重试"
   },
   "topicTitles": {
     "transport": "交通",

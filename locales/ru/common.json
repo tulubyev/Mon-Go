@@ -14,7 +14,11 @@
     "topics": "Разделы"
   },
   "welcome": {
-    "comingSoon": "Скоро видео"
+    "comingSoon": "Скоро видео",
+    "checking": "Проверка соединения…",
+    "offTitle": "Нет связи с сервером",
+    "offSub": "Часть функций offline недоступна",
+    "retry": "Повторить"
   },
   "topicTitles": {
     "transport": "Транспорт",

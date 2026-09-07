@@ -14,7 +14,11 @@
     "topics": "Topics"
   },
   "welcome": {
-    "comingSoon": "Video coming soon"
+    "comingSoon": "Video coming soon",
+    "checking": "Checking connection…",
+    "offTitle": "Can't reach the server",
+    "offSub": "Some features aren't available offline",
+    "retry": "Retry"
   },
   "topicTitles": {
     "transport": "Transport",

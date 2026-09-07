@@ -144,6 +144,23 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 export const api = {
   getStats: () => request<{ totalQuestions: number }>('/api/stats'),
 
+  // Used by the welcome screen's reachability check — a plain fetch, not
+  // routed through request()'s error-message-surfacing, since a health
+  // check just needs ok/not-ok within a bounded time.
+  getHealth: async (timeoutMs = 7000): Promise<{ status: string } | null> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${BASE_URL}/health`, { signal: controller.signal });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  },
+
   ask: (message: string, userId: string, topic?: string) =>
     request<{ success: boolean; response: string; locations?: any[] }>('/api/mongolia/chat', {
       method: 'POST',
