@@ -100,6 +100,7 @@ function RootLayoutNav() {
             <Stack.Screen name="transport" options={{ headerShown: false }} />
             <Stack.Screen name="wiki/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="change-password" options={{ title: t('auth.changePassword'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="verify-phone" options={{ title: t('auth.verifyPhoneTitle'), headerBackTitle: t('common.back') }} />
           </Stack>
         </ThemeProvider>
       </AuthProvider>

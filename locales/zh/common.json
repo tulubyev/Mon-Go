@@ -143,7 +143,13 @@
     "emailNotVerified": "邮箱未验证 — 点击验证",
     "subscription": "订阅",
     "favorites": "收藏",
-    "comingSoon": "即将上线"
+    "comingSoon": "即将上线",
+    "phone": "电话",
+    "sendCode": "发送验证码",
+    "verifyPhoneTitle": "验证手机号",
+    "verifyPhoneSubtitle": "我们将发送验证码短信",
+    "changeNumber": "更改号码",
+    "phoneNotVerified": "手机未验证 — 点击添加"
   },
   "interpreter": {
     "title": "实时翻译",

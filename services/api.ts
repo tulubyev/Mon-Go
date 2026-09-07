@@ -224,13 +224,17 @@ export const api = {
 
   getMe: () => request<AuthUser>('/api/auth/me'),
 
-  sendCode: (identifier: string, type: 'email' = 'email') =>
+  // type 'email' is public (registration/login flow). type 'phone' requires
+  // an authenticated request (Bearer token attached automatically once
+  // setAuthToken has been called) — phone verification is a profile action,
+  // not part of signing in.
+  sendCode: (identifier: string, type: 'email' | 'phone' = 'email') =>
     request<{ success: boolean }>('/api/auth/send-code', {
       method: 'POST',
       body: JSON.stringify({ identifier, type }),
     }),
 
-  verifyCode: (identifier: string, code: string, type: 'email' = 'email') =>
+  verifyCode: (identifier: string, code: string, type: 'email' | 'phone' = 'email') =>
     request<{ success: boolean; token: string | null; user: AuthUser | null }>('/api/auth/verify-code', {
       method: 'POST',
       body: JSON.stringify({ identifier, code, type }),

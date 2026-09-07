@@ -143,7 +143,13 @@
     "emailNotVerified": "Email not verified — tap to verify",
     "subscription": "Subscription",
     "favorites": "Favorites",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "phone": "Phone",
+    "sendCode": "Send code",
+    "verifyPhoneTitle": "Verify phone",
+    "verifyPhoneSubtitle": "We'll text you a code",
+    "changeNumber": "Change number",
+    "phoneNotVerified": "Phone not verified — tap to add"
   },
   "interpreter": {
     "title": "Live Interpreter",

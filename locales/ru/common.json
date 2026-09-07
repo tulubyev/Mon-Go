@@ -143,7 +143,13 @@
     "emailNotVerified": "Email не подтверждён — нажмите, чтобы подтвердить",
     "subscription": "Подписка",
     "favorites": "Избранное",
-    "comingSoon": "Скоро появится"
+    "comingSoon": "Скоро появится",
+    "phone": "Телефон",
+    "sendCode": "Отправить код",
+    "verifyPhoneTitle": "Подтвердить телефон",
+    "verifyPhoneSubtitle": "Пришлём код по SMS",
+    "changeNumber": "Изменить номер",
+    "phoneNotVerified": "Телефон не подтверждён — нажмите, чтобы добавить"
   },
   "interpreter": {
     "title": "Живой переводчик",

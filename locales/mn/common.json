@@ -143,7 +143,13 @@
     "emailNotVerified": "Имэйл баталгаажаагүй — дарж баталгаажуулна уу",
     "subscription": "Захиалга",
     "favorites": "Хадгалсан",
-    "comingSoon": "Тун удахгүй"
+    "comingSoon": "Тун удахгүй",
+    "phone": "Утас",
+    "sendCode": "Код илгээх",
+    "verifyPhoneTitle": "Утас баталгаажуулах",
+    "verifyPhoneSubtitle": "SMS-ээр код илгээнэ",
+    "changeNumber": "Дугаар солих",
+    "phoneNotVerified": "Утас баталгаажаагүй — дарж нэмнэ үү"
   },
   "interpreter": {
     "title": "Шууд орчуулагч",

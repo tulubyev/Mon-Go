@@ -148,6 +148,12 @@ function ProfileSection({ user, onLogout, onRefresh }: {
             <Text style={styles.verifyBannerArrow}>›</Text>
           </Pressable>
         )}
+        {!user.phoneVerified && (
+          <Pressable style={styles.verifyBanner} onPress={() => router.push('/verify-phone' as any)}>
+            <Text style={styles.verifyBannerText}>📱 {t('auth.phoneNotVerified')}</Text>
+            <Text style={styles.verifyBannerArrow}>›</Text>
+          </Pressable>
+        )}
       </View>
 
       <View style={styles.section}>
