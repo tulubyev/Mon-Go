@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { readingContainerStyle } from '@/constants/Layout';
+import { ApiError } from '@/services/api';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -22,6 +23,12 @@ export default function LoginScreen() {
       await login(email.trim().toLowerCase(), password);
       router.back();
     } catch (err: any) {
+      // Correct password, unverified email — send them to finish that
+      // instead of leaving them at a dead-end error with no next step.
+      if (err instanceof ApiError && err.data?.requiresVerification) {
+        router.replace({ pathname: '/(auth)/verify' as any, params: { email: err.data.email || email.trim().toLowerCase() } });
+        return;
+      }
       Alert.alert(t('common.error'), err.message || t('auth.loginError'));
     } finally {
       setSubmitting(false);

@@ -112,11 +112,14 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  /** Full parsed error body — screens can read fields beyond `message` (e.g. login's requiresVerification/email). */
+  data: any;
+  constructor(status: number, message: string, data?: any) {
     super(message);
     this.status = status;
+    this.data = data;
   }
 }
 
@@ -133,7 +136,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   // status code so login/register screens can show the real reason.
   const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new ApiError(response.status, data?.message || `API error ${response.status}`);
+    throw new ApiError(response.status, data?.message || `API error ${response.status}`, data);
   }
   return data as T;
 }
