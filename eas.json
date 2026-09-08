@@ -43,14 +43,20 @@
   "submit": {
     "testflight": {
       "ios": {
-        "appleId": "alt@amazonka.biz",
-        "ascAppId": "6805457833"
+        "ascAppId": "6805457833",
+        "appleTeamId": "5NNA8W5BEM",
+        "ascApiKeyPath": "/Users/alexandertulubyev/Downloads/AuthKey_8Z448PBAKH.p8",
+        "ascApiKeyId": "8Z448PBAKH",
+        "ascApiKeyIssuerId": "be93a96b-3078-42e0-9e2a-1022fde5b6fd"
       }
     },
     "production": {
       "ios": {
-        "appleId": "alt@amazonka.biz",
-        "ascAppId": "6805457833"
+        "ascAppId": "6805457833",
+        "appleTeamId": "5NNA8W5BEM",
+        "ascApiKeyPath": "/Users/alexandertulubyev/Downloads/AuthKey_8Z448PBAKH.p8",
+        "ascApiKeyId": "8Z448PBAKH",
+        "ascApiKeyIssuerId": "be93a96b-3078-42e0-9e2a-1022fde5b6fd"
       },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
