@@ -22,14 +22,14 @@
   },
   "topicTitles": {
     "transport": "Транспорт",
-    "accommodation": "Проживание",
+    "accommodation": "Отели",
     "finance": "Финансы",
     "communication": "Связь",
-    "language": "Монгольский язык",
-    "planning": "Планирование поездки",
+    "language": "Язык",
+    "planning": "Маршрут",
     "ulaanbaatar": "Улан-Батор",
     "safety": "Безопасность",
-    "food": "Монгольская кухня"
+    "food": "Питание"
   },
   "map": {
     "title": "Карта",
@@ -104,7 +104,7 @@
     "success": "Объявление опубликовано!"
   },
   "settings": {
-    "title": "Настройки",
+    "title": "Аккаунт",
     "language": "Язык",
     "selectLanguage": "Выберите язык",
     "languages": {

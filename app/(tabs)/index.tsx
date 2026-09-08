@@ -1,12 +1,19 @@
-import { StyleSheet, FlatList, Pressable, Text, View } from 'react-native';
+import { StyleSheet, FlatList, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TOPICS } from '@/constants/topics';
 import { changeLanguage, getCurrentLanguage } from '@/lib/i18n';
-import { useResponsiveColumns } from '@/components/useResponsiveColumns';
-import { GRID_MIN_CARD_WIDTH } from '@/constants/Layout';
+
+const GRID_PADDING = 12;
+const CARD_MARGIN = 5;
+// Fixed 3×4 grid — 9 topics + map/chat/ads = exactly 12 tiles, so 3 columns
+// always fills 4 even rows on every device instead of reflowing by width.
+const NUM_COLUMNS = 3;
+
+const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
 const LANGUAGES = [
   { code: 'ru' as const, flag: '🇷🇺' },
@@ -18,7 +25,12 @@ const LANGUAGES = [
 export default function HomeScreen() {
   const { t } = useTranslation();
   const [current, setCurrent] = useState(getCurrentLanguage());
-  const numColumns = useResponsiveColumns(GRID_MIN_CARD_WIDTH, 6);
+  const { width } = useWindowDimensions();
+  const tabBarHeight = useBottomTabBarHeight();
+  const cardWidth = width / NUM_COLUMNS - GRID_PADDING - CARD_MARGIN * 2;
+  const cardMinHeight = clamp(cardWidth * 0.85, 100, 170);
+  const iconSize = clamp(cardWidth * 0.26, 28, 56);
+  const titleSize = clamp(cardWidth * 0.075, 11, 16);
 
   const gridData = [
     ...TOPICS,
@@ -49,22 +61,21 @@ export default function HomeScreen() {
         <Text style={styles.headerSub}>Travel Mongolia</Text>
       </View>
       <FlatList
-        key={numColumns}
         data={gridData}
         keyExtractor={(item) => item.key}
-        numColumns={numColumns}
-        contentContainerStyle={styles.grid}
+        numColumns={NUM_COLUMNS}
+        contentContainerStyle={[styles.grid, { paddingBottom: tabBarHeight + 12 }]}
         renderItem={({ item }) => (
           <Pressable
-            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+            style={({ pressed }) => [styles.card, { minHeight: cardMinHeight }, pressed && styles.cardPressed]}
             onPress={() => {
               if ('route' in item) router.push(item.route as any);
               else if (item.key === 'transport') router.push('/transport' as any);
               else router.push(`/topic/${item.key}`);
             }}
           >
-            <Text style={styles.cardIcon}>{item.icon}</Text>
-            <Text style={styles.cardTitle} numberOfLines={2}>
+            <Text style={[styles.cardIcon, { fontSize: iconSize }]}>{item.icon}</Text>
+            <Text style={[styles.cardTitle, { fontSize: titleSize }]} numberOfLines={2}>
               {'route' in item ? item.title : t(`topicTitles.${item.key}`)}
             </Text>
           </Pressable>

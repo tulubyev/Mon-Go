@@ -1,8 +1,12 @@
-import { Tabs } from 'expo-router';
+import { Tabs, router } from 'expo-router';
 import { Platform, StyleSheet, View } from 'react-native';
+import { useRef } from 'react';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+
+// Two Home-tab taps within this window count as a double-tap.
+const DOUBLE_TAP_MS = 400;
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -18,6 +22,7 @@ export default function TabLayout() {
   const isDark = colorScheme === 'dark';
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
+  const lastHomeTap = useRef(0);
 
   return (
     <Tabs
@@ -45,6 +50,17 @@ export default function TabLayout() {
         options={{
           tabBarLabel: t('tabs.home'),
           tabBarIcon: ({ color, size }) => <Ionicons name="home" color={color} size={size} />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            const now = Date.now();
+            const isDoubleTap = now - lastHomeTap.current < DOUBLE_TAP_MS;
+            lastHomeTap.current = now;
+            if (isDoubleTap) {
+              e.preventDefault();
+              router.push('/welcome' as any);
+            }
+          },
         }}
       />
       <Tabs.Screen

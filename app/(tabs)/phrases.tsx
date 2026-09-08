@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, Pressable, Platform, ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { PHRASE_SECTIONS, Phrase } from '@/constants/phrases';
@@ -11,6 +13,7 @@ import { readingContainerStyle } from '@/constants/Layout';
 export default function PhrasesScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const tabBarHeight = useBottomTabBarHeight();
   const [expanded, setExpanded] = useState<Set<number>>(new Set([0]));
   const [speaking, setSpeaking] = useState<string | null>(null);
 
@@ -56,7 +59,7 @@ export default function PhrasesScreen() {
   }, [speaking]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.headerTitle}>{t('phrases.title')}</Text>
@@ -71,7 +74,7 @@ export default function PhrasesScreen() {
         </View>
         <Text style={styles.headerSub}>{PHRASE_SECTIONS.length} {t('phrases.sections')} · {t('phrases.tapToPlay')}</Text>
       </View>
-      <ScrollView style={styles.scroll} contentContainerStyle={readingContainerStyle} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[readingContainerStyle, { paddingBottom: tabBarHeight + 16 }]} showsVerticalScrollIndicator={false}>
         {PHRASE_SECTIONS.map((section, si) => {
           const isOpen = expanded.has(si);
           return (
@@ -100,7 +103,7 @@ export default function PhrasesScreen() {
         })}
         <View style={styles.bottomPad} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

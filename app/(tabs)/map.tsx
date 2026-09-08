@@ -1,5 +1,6 @@
 import { Platform, StyleSheet, Text, View, Pressable, ScrollView, Linking, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, POI } from '@/services/api';
@@ -41,6 +42,7 @@ function MapNativeScreen() {
   const [selected, setSelected] = useState<POI | null>(null);
   const [userLocationVisible, setUserLocationVisible] = useState(false);
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const isOnline = useNetworkStatus();
   const offlinePack = useOfflineMapPack();
 
@@ -117,7 +119,7 @@ function MapNativeScreen() {
       <OfflineMapControl pack={offlinePack} isOnline={isOnline} topOffset={insets.top + 60} />
 
       {/* InfoCard */}
-      {selected && <InfoCard poi={selected} onClose={() => setSelected(null)} />}
+      {selected && <InfoCard poi={selected} onClose={() => setSelected(null)} bottomOffset={tabBarHeight} />}
     </View>
   );
 }
@@ -173,7 +175,7 @@ function OfflineMapControl({
 }
 
 // ─── InfoCard ─────────────────────────────────────────────────────────────────
-function InfoCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
+function InfoCard({ poi, onClose, bottomOffset }: { poi: POI; onClose: () => void; bottomOffset: number }) {
   const { t } = useTranslation();
   const catLabel = t(`map.categories.${poi.category}`, { defaultValue: poi.category });
 
@@ -189,7 +191,7 @@ function InfoCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
   };
 
   return (
-    <View style={styles.infoCardWrapper} pointerEvents="box-none">
+    <View style={[styles.infoCardWrapper, { bottom: bottomOffset }]} pointerEvents="box-none">
       <View style={styles.infoCard}>
         <View style={styles.infoCardHandle} />
         <View style={styles.infoCardHeader}>

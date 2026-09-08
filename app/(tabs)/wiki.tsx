@@ -4,6 +4,7 @@ import {
   Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -54,6 +55,7 @@ export default function WikiScreen() {
   const { t, i18n } = useTranslation();
   const lang = (i18n.language as WikiLocale) || 'ru';
   const qc = useQueryClient();
+  const tabBarHeight = useBottomTabBarHeight();
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedDynamic, setSelectedDynamic] = useState<WikiArticle | null>(null);
@@ -149,7 +151,7 @@ export default function WikiScreen() {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.list, { paddingBottom: tabBarHeight + 16 }]} showsVerticalScrollIndicator={false}>
         {filtered.map(article => (
           <Pressable
             key={article.id}

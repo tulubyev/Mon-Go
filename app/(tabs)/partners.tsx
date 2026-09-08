@@ -4,6 +4,7 @@ import {
   Linking, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +27,7 @@ const TIER_BADGE: Record<string, { label: string; color: string }> = {
 export default function PartnersScreen() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language || 'ru';
+  const tabBarHeight = useBottomTabBarHeight();
   const [type, setType] = useState<string>('all');
 
   const { data: partners, isLoading, refetch, isRefetching } = useQuery({
@@ -85,7 +87,7 @@ export default function PartnersScreen() {
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: tabBarHeight + 16 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         >

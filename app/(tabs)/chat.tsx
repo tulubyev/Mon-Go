@@ -3,6 +3,7 @@ import {
   KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +22,7 @@ export default function ChatScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ question?: string; label?: string }>();
+  const tabBarHeight = useBottomTabBarHeight();
   const [messages, setMessages] = useState<Message[]>([]);
   const [ratings, setRatings] = useState<Record<string, 'up' | 'down'>>({});
   const [input, setInput] = useState('');
@@ -127,7 +129,7 @@ export default function ChatScreen() {
             <Text style={styles.typingText}>{t('chat.typing')}</Text>
           </View>
         )}
-        <View style={styles.inputRow}>
+        <View style={[styles.inputRow, { paddingBottom: 10 + tabBarHeight }]}>
           <TextInput
             style={styles.input}
             value={input}

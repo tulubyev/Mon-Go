@@ -3,6 +3,8 @@ import {
   StyleSheet, Text, View, FlatList, Pressable, Modal, TextInput,
   ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 const BASE_URL = 'https://mon-go.ru';
 
@@ -57,6 +59,7 @@ function timeAgo(iso: string): string {
 }
 
 export default function AdsScreen() {
+  const tabBarHeight = useBottomTabBarHeight();
   const [activeCategory, setActiveCategory] = useState<Category>('trips');
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +84,7 @@ export default function AdsScreen() {
   const onRefresh = () => { setRefreshing(true); load(activeCategory, true); };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Category tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catBar} contentContainerStyle={styles.catContent}>
         {CATEGORIES.map(cat => (
@@ -103,7 +106,10 @@ export default function AdsScreen() {
         <FlatList
           data={ads}
           keyExtractor={a => String(a.id)}
-          contentContainerStyle={ads.length === 0 ? styles.emptyContainer : styles.list}
+          contentContainerStyle={[
+            ads.length === 0 ? styles.emptyContainer : styles.list,
+            { paddingBottom: tabBarHeight + 16 },
+          ]}
           refreshing={refreshing}
           onRefresh={onRefresh}
           ListEmptyComponent={<EmptyState category={activeCategory} onPost={() => setShowForm(true)} />}
@@ -112,7 +118,7 @@ export default function AdsScreen() {
       )}
 
       {/* FAB */}
-      <Pressable style={styles.fab} onPress={() => setShowForm(true)}>
+      <Pressable style={[styles.fab, { bottom: tabBarHeight + 16 }]} onPress={() => setShowForm(true)}>
         <Text style={styles.fabText}>＋</Text>
       </Pressable>
 
@@ -123,7 +129,7 @@ export default function AdsScreen() {
         onClose={() => setShowForm(false)}
         onSuccess={() => { setShowForm(false); load(activeCategory); }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

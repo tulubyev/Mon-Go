@@ -1,4 +1,6 @@
 import { StyleSheet, Text, View, Pressable, Image, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -43,8 +45,10 @@ export default function SettingsScreen() {
 
 function GuestScreen() {
   const { t } = useTranslation();
+  const tabBarHeight = useBottomTabBarHeight();
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.guestContainer}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
+    <ScrollView contentContainerStyle={[styles.guestContainer, { paddingBottom: tabBarHeight + 24 }]}>
       <View style={styles.guestIcon}>
         <Ionicons name="person-outline" size={48} color="#94A3B8" />
       </View>
@@ -67,12 +71,14 @@ function GuestScreen() {
 
       <LanguageSection />
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 function ProfileScreen() {
   const { t } = useTranslation();
   const { user, logout, refreshUser } = useAuth();
+  const tabBarHeight = useBottomTabBarHeight();
   const [uploading, setUploading] = useState(false);
 
   if (!user) return null;
@@ -126,7 +132,8 @@ function ProfileScreen() {
   ];
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.profileContent} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
+    <ScrollView contentContainerStyle={[styles.profileContent, { paddingBottom: tabBarHeight + 24 }]} showsVerticalScrollIndicator={false}>
       {/* Profile header card */}
       <View style={styles.profileCard}>
         <Pressable onPress={pickAvatar} disabled={uploading} style={styles.avatarWrap}>
@@ -235,6 +242,7 @@ function ProfileScreen() {
         <Text style={styles.logoutText}>{t('common.logout')}</Text>
       </Pressable>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
