@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "mongo",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tulubyev.mongo",
@@ -69,7 +68,8 @@
       ],
       "expo-audio",
       "expo-localization",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

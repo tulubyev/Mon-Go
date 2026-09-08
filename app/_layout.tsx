@@ -1,5 +1,5 @@
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
@@ -12,7 +12,6 @@ import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persi
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { useColorScheme } from '@/components/useColorScheme';
 import WelcomeScreen from '@/components/WelcomeScreen';
 import { AuthProvider } from '@/contexts/AuthContext';
 
@@ -78,7 +77,6 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
   const { t } = useTranslation();
   const [showWelcome, setShowWelcome] = useState(true);
 
@@ -89,21 +87,25 @@ function RootLayoutNav() {
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
       <AuthProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: 'modal' }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="quiz" options={{ title: t('quiz.title'), headerBackTitle: t('common.back') }} />
-            <Stack.Screen name="ocr" options={{ title: t('ocr.title'), headerBackTitle: t('common.back') }} />
-            <Stack.Screen name="interpreter" options={{ title: t('interpreter.title'), headerBackTitle: t('common.back'), headerShown: false }} />
-            <Stack.Screen name="transport" options={{ headerShown: false }} />
-            <Stack.Screen name="wiki/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="change-password" options={{ title: t('auth.changePassword'), headerBackTitle: t('common.back') }} />
-            <Stack.Screen name="verify-phone" options={{ title: t('auth.verifyPhoneTitle'), headerBackTitle: t('common.back') }} />
-            <Stack.Screen name="subscription" options={{ title: t('auth.subscription'), headerBackTitle: t('common.back') }} />
-          </Stack>
-        </ThemeProvider>
+        {/* No explicit light/dark ThemeProvider — @react-navigation/native v7
+            dropped the standalone component (DarkTheme/DefaultTheme are just
+            plain objects now, no longer paired with a provider export from
+            expo-router). Native-stack headers pick up the OS appearance on
+            their own; Mon-Go never customized colors.background/card beyond
+            that stock light/dark switch, so there's nothing lost here. */}
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: 'modal' }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="quiz" options={{ title: t('quiz.title'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="ocr" options={{ title: t('ocr.title'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="interpreter" options={{ title: t('interpreter.title'), headerBackTitle: t('common.back'), headerShown: false }} />
+          <Stack.Screen name="transport" options={{ headerShown: false }} />
+          <Stack.Screen name="wiki/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="change-password" options={{ title: t('auth.changePassword'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="verify-phone" options={{ title: t('auth.verifyPhoneTitle'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="subscription" options={{ title: t('auth.subscription'), headerBackTitle: t('common.back') }} />
+        </Stack>
       </AuthProvider>
     </PersistQueryClientProvider>
   );

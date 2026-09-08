@@ -27,7 +27,6 @@ const getDefaultLanguage = async (): Promise<string> => {
 export const initI18n = async () => {
   const lng = await getDefaultLanguage();
   await i18n.use(initReactI18next).init({
-    compatibilityJSON: 'v3',
     resources: {
       ru: { translation: ru },
       en: { translation: en },
