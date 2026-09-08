@@ -131,8 +131,10 @@
   },
   "auth": {
     "loginTitle": "Вход",
+    "loginSub": "Рады видеть вас снова",
     "registerTitle": "Регистрация",
-    "verifyTitle": "Подтверждение",
+    "registerSub": "Создайте аккаунт, чтобы продолжить",
+    "verifyTitle": "Введите код",
     "email": "Email",
     "password": "Пароль",
     "firstName": "Имя",
@@ -147,9 +149,13 @@
     "registerLink": "Зарегистрироваться",
     "loginLink": "Войти",
     "verifySubtitle": "Мы отправили код на {{email}}",
+    "verifySubtitlePrefix": "Отправили 6-значный код на",
     "verify": "Подтвердить",
+    "verifyAction": "Подтвердить",
     "verifyError": "Код неверен или истёк",
     "resendCode": "Отправить код ещё раз",
+    "resendIn": "Отправить повторно через {{seconds}}с",
+    "codeValidFor": "Код действителен 15 минут",
     "codeResent": "Код отправлен повторно",
     "changePassword": "Сменить пароль",
     "currentPassword": "Текущий пароль",
@@ -168,7 +174,9 @@
     "verifyPhoneTitle": "Подтвердить телефон",
     "verifyPhoneSubtitle": "Пришлём код по SMS",
     "changeNumber": "Изменить номер",
-    "phoneNotVerified": "Телефон не подтверждён — нажмите, чтобы добавить"
+    "phoneNotVerified": "Телефон не подтверждён — нажмите, чтобы добавить",
+    "addPhone": "Добавить и подтвердить телефон",
+    "guestTitle": "Войдите, чтобы открыть личный кабинет"
   },
   "interpreter": {
     "title": "Живой переводчик",

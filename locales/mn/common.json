@@ -131,8 +131,10 @@
   },
   "auth": {
     "loginTitle": "Нэвтрэх",
+    "loginSub": "Тавтай морил",
     "registerTitle": "Бүртгүүлэх",
-    "verifyTitle": "Баталгаажуулах",
+    "registerSub": "Үргэлжлүүлэхийн тулд бүртгэл үүсгэнэ үү",
+    "verifyTitle": "Код оруулна уу",
     "email": "Имэйл",
     "password": "Нууц үг",
     "firstName": "Нэр",
@@ -147,9 +149,13 @@
     "registerLink": "Бүртгүүлэх",
     "loginLink": "Нэвтрэх",
     "verifySubtitle": "{{email}} хаяг руу код илгээлээ",
+    "verifySubtitlePrefix": "6 оронтой код илгээлээ",
     "verify": "Баталгаажуулах",
+    "verifyAction": "Баталгаажуулах",
     "verifyError": "Код буруу эсвэл хугацаа дууссан",
     "resendCode": "Кодыг дахин илгээх",
+    "resendIn": "{{seconds}} секундын дараа дахин илгээнэ",
+    "codeValidFor": "Код 15 минутын турш хүчинтэй",
     "codeResent": "Код дахин илгээгдлээ",
     "changePassword": "Нууц үг солих",
     "currentPassword": "Одоогийн нууц үг",
@@ -168,7 +174,9 @@
     "verifyPhoneTitle": "Утас баталгаажуулах",
     "verifyPhoneSubtitle": "SMS-ээр код илгээнэ",
     "changeNumber": "Дугаар солих",
-    "phoneNotVerified": "Утас баталгаажаагүй — дарж нэмнэ үү"
+    "phoneNotVerified": "Утас баталгаажаагүй — дарж нэмнэ үү",
+    "addPhone": "Утас нэмж баталгаажуулах",
+    "guestTitle": "Хувийн профайл нээхийн тулд нэвтэрнэ үү"
   },
   "interpreter": {
     "title": "Шууд орчуулагч",

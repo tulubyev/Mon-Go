@@ -131,8 +131,10 @@
   },
   "auth": {
     "loginTitle": "登录",
+    "loginSub": "欢迎回来",
     "registerTitle": "注册",
-    "verifyTitle": "验证",
+    "registerSub": "创建账号以继续",
+    "verifyTitle": "输入验证码",
     "email": "电子邮箱",
     "password": "密码",
     "firstName": "名字",
@@ -147,9 +149,13 @@
     "registerLink": "注册",
     "loginLink": "登录",
     "verifySubtitle": "验证码已发送至 {{email}}",
+    "verifySubtitlePrefix": "我们已将6位验证码发送至",
     "verify": "验证",
+    "verifyAction": "验证",
     "verifyError": "验证码错误或已过期",
     "resendCode": "重新发送验证码",
+    "resendIn": "{{seconds}}秒后可重新发送",
+    "codeValidFor": "验证码有效期为15分钟",
     "codeResent": "验证码已重新发送",
     "changePassword": "修改密码",
     "currentPassword": "当前密码",
@@ -168,7 +174,9 @@
     "verifyPhoneTitle": "验证手机号",
     "verifyPhoneSubtitle": "我们将发送验证码短信",
     "changeNumber": "更改号码",
-    "phoneNotVerified": "手机未验证 — 点击添加"
+    "phoneNotVerified": "手机未验证 — 点击添加",
+    "addPhone": "添加并验证手机号",
+    "guestTitle": "登录以打开个人中心"
   },
   "interpreter": {
     "title": "实时翻译",

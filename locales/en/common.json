@@ -131,8 +131,10 @@
   },
   "auth": {
     "loginTitle": "Log in",
+    "loginSub": "Welcome back",
     "registerTitle": "Sign up",
-    "verifyTitle": "Verify",
+    "registerSub": "Create an account to continue",
+    "verifyTitle": "Enter the code",
     "email": "Email",
     "password": "Password",
     "firstName": "First name",
@@ -147,9 +149,13 @@
     "registerLink": "Sign up",
     "loginLink": "Log in",
     "verifySubtitle": "We sent a code to {{email}}",
+    "verifySubtitlePrefix": "We sent a 6-digit code to",
     "verify": "Verify",
+    "verifyAction": "Verify",
     "verifyError": "Code is invalid or expired",
     "resendCode": "Resend code",
+    "resendIn": "Resend in {{seconds}}s",
+    "codeValidFor": "Code is valid for 15 minutes",
     "codeResent": "Code sent again",
     "changePassword": "Change password",
     "currentPassword": "Current password",
@@ -168,7 +174,9 @@
     "verifyPhoneTitle": "Verify phone",
     "verifyPhoneSubtitle": "We'll text you a code",
     "changeNumber": "Change number",
-    "phoneNotVerified": "Phone not verified — tap to add"
+    "phoneNotVerified": "Phone not verified — tap to add",
+    "addPhone": "Add and verify a phone number",
+    "guestTitle": "Log in to open your account"
   },
   "interpreter": {
     "title": "Live Interpreter",
