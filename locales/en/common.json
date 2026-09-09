@@ -29,7 +29,15 @@
     "planning": "Trip Planning",
     "ulaanbaatar": "Ulaanbaatar",
     "safety": "Safety",
-    "food": "Mongolian Cuisine"
+    "food": "Mongolian Cuisine",
+    "sos": "SOS",
+    "weather": "Weather",
+    "nature": "Nature",
+    "emotions": "Experiences",
+    "events": "Events",
+    "calendar": "Calendar",
+    "photos": "Photos",
+    "videos": "Videos"
   },
   "map": {
     "title": "Map",

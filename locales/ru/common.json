@@ -29,7 +29,15 @@
     "planning": "Маршрут",
     "ulaanbaatar": "Улан-Батор",
     "safety": "Безопасность",
-    "food": "Питание"
+    "food": "Питание",
+    "sos": "SOS",
+    "weather": "Погода",
+    "nature": "Природа",
+    "emotions": "Впечатления",
+    "events": "События",
+    "calendar": "Календарь",
+    "photos": "Фото",
+    "videos": "Видео"
   },
   "map": {
     "title": "Карта",

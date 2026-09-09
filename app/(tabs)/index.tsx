@@ -9,9 +9,11 @@ import { changeLanguage, getCurrentLanguage } from '@/lib/i18n';
 
 const GRID_PADDING = 12;
 const CARD_MARGIN = 5;
-// Fixed 3×4 grid — 9 topics + map/chat/ads = exactly 12 tiles, so 3 columns
-// always fills 4 even rows on every device instead of reflowing by width.
-const NUM_COLUMNS = 3;
+// Fixed 4×5 grid — 17 topics (9 original + Photo/Video/Events/Calendar/SOS/
+// Weather/Nature/Emotions, ported from BaikalLove's home screen) +
+// map/chat/ads = exactly 20 tiles, so 4 columns always fills 5 even rows on
+// every device instead of reflowing by width.
+const NUM_COLUMNS = 4;
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 

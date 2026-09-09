@@ -29,7 +29,15 @@
     "planning": "行程规划",
     "ulaanbaatar": "乌兰巴托",
     "safety": "安全",
-    "food": "蒙古美食"
+    "food": "蒙古美食",
+    "sos": "紧急求助",
+    "weather": "天气",
+    "nature": "自然",
+    "emotions": "体验",
+    "events": "活动",
+    "calendar": "日历",
+    "photos": "照片",
+    "videos": "视频"
   },
   "map": {
     "title": "地图",
