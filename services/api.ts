@@ -10,7 +10,7 @@ export interface POI {
   lat: number;
   lng: number;
   category: 'sight' | 'food' | 'accommodation' | 'transport' | 'safety' | 'camp' | 'user'
-    | 'museum' | 'restaurant' | 'cafe' | 'hotel' | 'market' | 'recreation';
+    | 'museum' | 'restaurant' | 'cafe' | 'hotel' | 'market' | 'recreation' | 'fuel';
   icon?: string;
   description?: string;
   phone?: string;
@@ -26,6 +26,12 @@ export interface POI {
   cuisine?: string;
   price_range?: string;
   wifi?: boolean;
+}
+
+export interface RouteResult {
+  distanceMeters: number;
+  durationSeconds: number;
+  geometry: { type: 'LineString'; coordinates: [number, number][] };
 }
 
 /** Row shape returned by GET /api/wiki/articles — flat per-locale columns. */
@@ -178,6 +184,12 @@ export const api = {
 
   getPOI: (category = 'all') =>
     request<POI[]>(`/api/poi?category=${category}`),
+
+  // Basic point-to-point routing (car, no turn-by-turn) — see TMB/route-routes.js.
+  // Requires connectivity: this proxies to a self-hosted OSRM instance, unlike
+  // the offline-capable map/POI browsing above.
+  getRoute: (from: { lat: number; lng: number }, to: { lat: number; lng: number }) =>
+    request<RouteResult>(`/api/route?from=${from.lat},${from.lng}&to=${to.lat},${to.lng}`),
 
   stt: (audioBase64: string, lang = 'mn', mime = 'audio/m4a') =>
     request<{ text: string }>('/api/stt', {

@@ -33,7 +33,6 @@
     "expo-symbols": "~55.0.9",
     "expo-web-browser": "~55.0.20",
     "i18next": "^26.4.0",
-    "pmtiles": "^4.5.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-i18next": "^17.0.12",

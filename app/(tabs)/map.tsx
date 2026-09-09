@@ -3,10 +3,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api, POI } from '@/services/api';
+import { api, POI, RouteResult } from '@/services/api';
 import { MAX_CARD_WIDTH } from '@/constants/Layout';
-import { useOfflineMapPack, MAP_STYLE_URL } from '@/hooks/useOfflineMapPack';
+import { useOfflineMapPack } from '@/hooks/useOfflineMapPack';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { MapLayersControl, MapCategory } from '@/components/MapLayersControl';
+import { mapStyleUrlForLocale } from '@/services/mapStyle';
 
 // v11 named exports — no default export, no setAccessToken
 const MapLibreGL = Platform.OS !== 'web' ? require('@maplibre/maplibre-react-native') : null;
@@ -18,33 +20,47 @@ export default function MapScreen() {
 }
 
 // ─── Category filter config ───────────────────────────────────────────────────
-const CATEGORY_KEYS = [
-  { key: 'all',        icon: '📍' },
-  { key: 'museum',     icon: '🏛️' },
-  { key: 'restaurant', icon: '🍽️' },
-  { key: 'cafe',       icon: '☕' },
-  { key: 'hotel',      icon: '🏨' },
-  { key: 'sight',      icon: '👁️' },
-  { key: 'market',     icon: '🛒' },
-  { key: 'camp',       icon: '🏕️' },
-  { key: 'recreation', icon: '🌄' },
-  { key: 'transport',  icon: '🚉' },
-  { key: 'safety',     icon: '🏥' },
+// No 'all' pseudo-entry — "all visible" is just every real category selected at
+// once in the multi-select control below (MapLayersControl), same model as
+// BaikalLove's map filter dropdown.
+const POI_CATEGORIES: Array<{ key: string; icon: string; color: string }> = [
+  { key: 'museum',     icon: '🏛️', color: '#8B5CF6' },
+  { key: 'restaurant', icon: '🍽️', color: '#EF4444' },
+  { key: 'cafe',       icon: '☕', color: '#F97316' },
+  { key: 'hotel',      icon: '🏨', color: '#0EA5E9' },
+  { key: 'sight',      icon: '👁️', color: '#10B981' },
+  { key: 'market',     icon: '🛒', color: '#EC4899' },
+  { key: 'camp',       icon: '🏕️', color: '#65A30D' },
+  { key: 'recreation', icon: '🌄', color: '#06B6D4' },
+  { key: 'transport',  icon: '🚉', color: '#64748B' },
+  { key: 'safety',     icon: '🏥', color: '#DC2626' },
+  { key: 'fuel',       icon: '⛽', color: '#F59E0B' },
 ];
 
 // ─── Native map (iOS / Android) ───────────────────────────────────────────────
 function MapNativeScreen() {
-  const { t } = useTranslation();
-  const CATEGORIES = CATEGORY_KEYS.map(c => ({ ...c, label: t(`map.categories.${c.key}`) }));
+  const { t, i18n } = useTranslation();
+  const CATEGORIES: MapCategory[] = POI_CATEGORIES.map(c => ({ ...c, label: t(`map.categories.${c.key}`) }));
   const [pois, setPois] = useState<POI[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set(POI_CATEGORIES.map(c => c.key)));
   const [selected, setSelected] = useState<POI | null>(null);
   const [userLocationVisible, setUserLocationVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const isOnline = useNetworkStatus();
   const offlinePack = useOfflineMapPack();
+
+  // Basic point-to-point routing — an in-app preview line + distance/ETA,
+  // not turn-by-turn nav (that stays the external Apple/Google/2GIS deep
+  // link in InfoCard). Requires connectivity: calls TMB's /api/route, which
+  // proxies to a self-hosted OSRM — unlike the map/POI browsing above, this
+  // one part doesn't work offline.
+  const [routingMode, setRoutingMode] = useState(false);
+  const [routePoints, setRoutePoints] = useState<[number, number][]>([]); // [lng,lat]
+  const [route, setRoute] = useState<RouteResult | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const [routeError, setRouteError] = useState(false);
 
   useEffect(() => {
     api.getPOI('all').then(setPois).catch(() => {}).finally(() => setLoading(false));
@@ -54,35 +70,50 @@ function MapNativeScreen() {
     })();
   }, []);
 
-  const filtered = activeCategory === 'all'
-    ? pois
-    : pois.filter(p => p.category === activeCategory);
+  const filtered = pois.filter(p => activeFilters.has(p.category));
 
-  // Hosted style JSON (not an inline object) — OfflineManager.createPack needs
-  // a real URL it can resolve itself, so the live map and the offline pack
-  // share the exact same style/tile source instead of drifting apart.
-  const mapStyle = MAP_STYLE_URL;
+  useEffect(() => {
+    if (routePoints.length !== 2) return;
+    const [from, to] = routePoints;
+    setRouteLoading(true);
+    setRouteError(false);
+    api.getRoute({ lat: from[1], lng: from[0] }, { lat: to[1], lng: to[0] })
+      .then(setRoute)
+      .catch(() => setRouteError(true))
+      .finally(() => setRouteLoading(false));
+  }, [routePoints]);
 
-  const { Map, Camera, UserLocation, Marker } = MapLibreGL;
+  const resetRoute = () => {
+    setRoutePoints([]);
+    setRoute(null);
+    setRouteError(false);
+  };
+  const toggleRoutingMode = () => {
+    if (routingMode) resetRoute();
+    setRoutingMode(!routingMode);
+  };
+  const handleMapPress = (e: { lngLat: [number, number] }) => {
+    if (routingMode) {
+      if (routePoints.length < 2) setRoutePoints(prev => [...prev, e.lngLat]);
+      return;
+    }
+    setSelected(null);
+  };
+
+  // One style file per locale (TMB/scripts/gen-map-styles.js) — the native
+  // MapLibre binding has no in-place style/layer mutation API, so changing
+  // language means pointing `mapStyle` at a different URL, which reloads the
+  // style. All variants share the same tile source, so this doesn't affect
+  // the offline pack (created once against the ru variant — see
+  // useOfflineMapPack.ts).
+  const mapStyle = mapStyleUrlForLocale(i18n.language);
+
+  const { Map, Camera, UserLocation, Marker, GeoJSONSource, Layer } = MapLibreGL;
 
   return (
     <View style={styles.container}>
-      {/* Category filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.filterBar, { maxHeight: 52 + insets.top, paddingTop: insets.top }]} contentContainerStyle={styles.filterContent}>
-        {CATEGORIES.map(cat => (
-          <Pressable
-            key={cat.key}
-            style={[styles.filterChip, activeCategory === cat.key && styles.filterChipActive]}
-            onPress={() => setActiveCategory(cat.key)}
-          >
-            <Text style={styles.filterIcon}>{cat.icon}</Text>
-            <Text style={[styles.filterLabel, activeCategory === cat.key && styles.filterLabelActive]}>{cat.label}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
       {/* Map — v11: Map + mapStyle prop, Camera initialViewState, Marker lngLat */}
-      <Map style={styles.map} mapStyle={mapStyle} onPress={() => setSelected(null)}>
+      <Map style={styles.map} mapStyle={mapStyle} onPress={handleMapPress}>
         <Camera
           initialViewState={{ center: [103.8467, 46.8625], zoom: 5 }}
         />
@@ -99,6 +130,26 @@ function MapNativeScreen() {
             </View>
           </Marker>
         ))}
+
+        {/* Route pins */}
+        {routePoints.map((pt, i) => (
+          <Marker key={`route-pt-${i}`} id={`route-pt-${i}`} lngLat={pt}>
+            <View style={styles.marker}>
+              <Text style={styles.markerIcon}>{i === 0 ? '🟢' : '🔴'}</Text>
+            </View>
+          </Marker>
+        ))}
+
+        {/* Route line preview */}
+        {route && (
+          <GeoJSONSource id="route-source" data={route.geometry}>
+            <Layer
+              id="route-line"
+              type="line"
+              style={{ lineColor: '#015197', lineWidth: 4, lineOpacity: 0.85 }}
+            />
+          </GeoJSONSource>
+        )}
       </Map>
 
       {/* Loading overlay */}
@@ -107,6 +158,14 @@ function MapNativeScreen() {
           <ActivityIndicator size="large" color="#3b82f6" />
         </View>
       )}
+
+      {/* Category/layers dropdown — floats over the map, doesn't push it down */}
+      <MapLayersControl
+        categories={CATEGORIES}
+        active={activeFilters}
+        onChange={setActiveFilters}
+        style={[styles.topBar, { top: insets.top + 8 }]}
+      />
 
       {/* POI count badge */}
       {!loading && (
@@ -117,6 +176,39 @@ function MapNativeScreen() {
 
       {/* Offline map pack — Mongolia has no signal outside the cities */}
       <OfflineMapControl pack={offlinePack} isOnline={isOnline} topOffset={insets.top + 60} />
+
+      {/* Routing FAB + hints — needs connectivity, unlike the map/POI browsing above */}
+      <Pressable
+        style={[styles.routeFab, routingMode && styles.routeFabActive, { bottom: tabBarHeight + 16 }]}
+        onPress={toggleRoutingMode}
+      >
+        <Text style={styles.routeFabIcon}>🧭</Text>
+      </Pressable>
+
+      {routingMode && routePoints.length < 2 && (
+        <View style={[styles.routeHint, { bottom: tabBarHeight + 76 }]}>
+          <Text style={styles.routeHintText}>
+            {routePoints.length === 0 ? t('map.routeTapFrom') : t('map.routeTapTo')}
+          </Text>
+        </View>
+      )}
+
+      {routingMode && routePoints.length === 2 && (
+        <View style={[styles.routeResult, { bottom: tabBarHeight + 76 }]}>
+          {routeLoading ? (
+            <ActivityIndicator size="small" color="#015197" />
+          ) : routeError ? (
+            <Text style={styles.routeResultText}>{t('map.routeError')}</Text>
+          ) : route ? (
+            <Text style={styles.routeResultText}>
+              📍 {(route.distanceMeters / 1000).toFixed(1)} {t('map.routeKm')} · ⏱ {Math.round(route.durationSeconds / 60)} {t('map.routeMin')}
+            </Text>
+          ) : null}
+          <Pressable onPress={resetRoute} hitSlop={8}>
+            <Text style={styles.routeResetText}>✕</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* InfoCard */}
       {selected && <InfoCard poi={selected} onClose={() => setSelected(null)} bottomOffset={tabBarHeight} />}
@@ -155,7 +247,7 @@ function OfflineMapControl({
     return (
       <View style={[styles.offlineBadge, { top: topOffset }]}>
         <Text style={styles.offlineBadgeText}>
-          ⬇️ {t('map.offlineDownloading')} {pack.progress}%
+          ⬇️ {t('map.offlineDownloading')} {pack.progress}% (~{pack.estimatedMB} MB)
         </Text>
       </View>
     );
@@ -247,29 +339,20 @@ function InfoRow({ icon, text }: { icon: string; text: string }) {
 // ─── Web fallback ─────────────────────────────────────────────────────────────
 function MapWebFallback() {
   const { t } = useTranslation();
-  const CATEGORIES = CATEGORY_KEYS.map(c => ({ ...c, label: t(`map.categories.${c.key}`) }));
+  const CATEGORIES: MapCategory[] = POI_CATEGORIES.map(c => ({ ...c, label: t(`map.categories.${c.key}`) }));
   const [pois, setPois] = useState<POI[]>([]);
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set(POI_CATEGORIES.map(c => c.key)));
   const [selected, setSelected] = useState<POI | null>(null);
 
   useEffect(() => { api.getPOI('all').then(setPois).catch(() => {}); }, []);
 
-  const filtered = activeCategory === 'all' ? pois : pois.filter(p => p.category === activeCategory);
+  const filtered = pois.filter(p => activeFilters.has(p.category));
 
   return (
     <View style={styles.container}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filterContent}>
-        {CATEGORIES.map(cat => (
-          <Pressable
-            key={cat.key}
-            style={[styles.filterChip, activeCategory === cat.key && styles.filterChipActive]}
-            onPress={() => setActiveCategory(cat.key)}
-          >
-            <Text style={styles.filterIcon}>{cat.icon}</Text>
-            <Text style={[styles.filterLabel, activeCategory === cat.key && styles.filterLabelActive]}>{cat.label}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <View style={styles.webFilterBar}>
+        <MapLayersControl categories={CATEGORIES} active={activeFilters} onChange={setActiveFilters} />
+      </View>
       <View style={styles.webMapPlaceholder}>
         <Text style={styles.webMapEmoji}>🗺️</Text>
         <Text style={styles.webMapTitle}>{t('map.webFallback.title')}</Text>
@@ -299,18 +382,33 @@ function MapWebFallback() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   map: { flex: 1 },
-  filterBar: { maxHeight: 52, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
-  filterContent: { paddingHorizontal: 10, alignItems: 'center', gap: 6, paddingVertical: 8 },
-  filterChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 16, backgroundColor: '#f5f5f5', borderWidth: 1, borderColor: '#eee' },
-  filterChipActive: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
-  filterIcon: { fontSize: 13 },
-  filterLabel: { fontSize: 12, fontWeight: '500', color: '#555' },
-  filterLabelActive: { color: '#fff' },
+  topBar: { position: 'absolute', left: 12, zIndex: 10 },
+  webFilterBar: { padding: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee', alignItems: 'flex-start' },
   marker: { alignItems: 'center', justifyContent: 'center' },
   markerIcon: { fontSize: 24 },
   loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)' },
   countBadge: { position: 'absolute', top: 60, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   offlineBadge: { position: 'absolute', left: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  routeFab: {
+    position: 'absolute', right: 12, width: 52, height: 52, borderRadius: 26,
+    backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 6,
+  },
+  routeFabActive: { backgroundColor: '#015197' },
+  routeFabIcon: { fontSize: 24 },
+  routeHint: {
+    position: 'absolute', left: 12, right: 76, backgroundColor: 'rgba(1,81,151,0.92)',
+    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
+  },
+  routeHintText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  routeResult: {
+    position: 'absolute', left: 12, right: 76, backgroundColor: '#fff',
+    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5,
+  },
+  routeResultText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
+  routeResetText: { fontSize: 16, color: '#94A3B8', fontWeight: '700', paddingLeft: 10 },
   offlineBadgeReady: { backgroundColor: 'rgba(21,128,61,0.85)' },
   offlineBadgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   countText: { color: '#fff', fontSize: 12, fontWeight: '600' },

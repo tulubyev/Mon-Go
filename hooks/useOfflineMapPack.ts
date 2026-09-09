@@ -5,20 +5,45 @@ import type { LngLatBounds } from '@maplibre/maplibre-react-native';
 // Style JSON hosted on the TMB server — OfflineManager.createPack needs a
 // real fetchable URL (the native SDK resolves it itself via NSURL/Android's
 // style loader), not the inline JS style object the live map otherwise uses.
-// Its raster source already points at our /ru-tiles/ proxy (custom
-// User-Agent, per OSM's tile usage policy), so offline downloads go through
-// the same compliant path as normal browsing.
-export const MAP_STYLE_URL = 'https://mon-go.ru/map-style.json';
+//
+// Vector (OpenMapTiles schema), not raster — this is what makes per-locale
+// label switching possible at all (see services/mapStyle.ts). Its source
+// points at TMB's own /tiles/mongolia/{z}/{x}/{y}.pbf, which splits
+// individual tiles out of a single self-hosted mongolia.pmtiles archive
+// (see TMB/vector-tile-routes.js) — MapLibre Native (the iOS/Android core
+// behind @maplibre/maplibre-react-native) has no pmtiles:// protocol support
+// of its own, that's a maplibre-gl-js/web-only feature, so the backend hands
+// it normal tile URLs instead. OfflineManager itself is unchanged from the
+// old raster setup: it downloads whatever tiles the given style points at,
+// vector or raster, with no client-side rework needed.
+//
+// The pack is created against the ru-locale style specifically, but that's
+// only to have ONE concrete URL to hand OfflineManager — all 4 per-locale
+// style variants (see services/mapStyle.ts) share this exact tile source, so
+// the downloaded pack covers every locale, not just ru.
+export const MAP_STYLE_URL = 'https://mon-go.ru/map-style-vector-ru.json';
 
-const PACK_NAME = 'mongolia-overview';
+const PACK_NAME = 'mongolia-overview-v2'; // v2: vector tiles, not the old raster pack
 
-// Whole-country bounding box, generous margin. Zoom capped at 10 (roads +
-// towns visible, not building-level) to keep the tile count sane — this is
-// a country-wide overview pack, not a street-navigation download.
+// Whole-country bounding box, generous margin. Zoom capped at 10 for the bulk
+// OFFLINE download (roads + towns, not building-level) — the live map when
+// online can still show detail up to the source's full z14, this cap only
+// limits how many individual tiles OfflineManager has to fetch one-by-one
+// for the bundled pack. Unchanged from the old raster pack's tuning; a
+// vector tile at this zoom range is typically smaller than its raster
+// equivalent anyway (near-empty steppe encodes to very little geometry).
 const MONGOLIA_BOUNDS: LngLatBounds = [87.5, 41.0, 120.0, 52.5];
 const MIN_ZOOM = 4;
 const MAX_ZOOM = 10;
 const TILE_COUNT_LIMIT = 6000;
+
+// OfflineManager reports tile counts, not bytes, for either raster or vector
+// packs — there's no real byte total to read from the SDK. This average
+// (from Planetiler's own build log for mongolia.pmtiles) turns that count
+// into an approximate, clearly-labeled MB figure for the progress UI instead
+// of a bare tile counter.
+const AVG_TILE_KB = 20; // gzip-equivalent average; see TMB/public/tiles/README.md
+const estimateMB = (tiles: number) => Math.round((tiles * AVG_TILE_KB) / 1024 * 10) / 10;
 
 export type OfflineMapStatus = 'checking' | 'none' | 'downloading' | 'complete' | 'error';
 
@@ -28,6 +53,8 @@ interface OfflineMapPackState {
   progress: number;
   completedTiles: number;
   requiredTiles: number;
+  /** Approximate, not exact — see AVG_TILE_KB comment above. */
+  estimatedMB: number;
   download: () => Promise<void>;
   remove: () => Promise<void>;
 }
@@ -110,5 +137,5 @@ export function useOfflineMapPack(): OfflineMapPackState {
     setProgress(0);
   }, []);
 
-  return { status, progress, completedTiles, requiredTiles, download, remove };
+  return { status, progress, completedTiles, requiredTiles, estimatedMB: estimateMB(completedTiles), download, remove };
 }
