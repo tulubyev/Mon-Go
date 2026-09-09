@@ -174,8 +174,9 @@ function MapNativeScreen() {
         </View>
       )}
 
-      {/* Offline map pack — Mongolia has no signal outside the cities */}
-      <OfflineMapControl pack={offlinePack} isOnline={isOnline} topOffset={insets.top + 60} />
+      {/* Offline map pack — Mongolia has no signal outside the cities. Same
+          row as the filters pill (top-left), pinned to the right edge. */}
+      <OfflineMapControl pack={offlinePack} isOnline={isOnline} topOffset={insets.top + 8} />
 
       {/* Routing FAB + hints — needs connectivity, unlike the map/POI browsing above */}
       <Pressable
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
   markerIcon: { fontSize: 24 },
   loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)' },
   countBadge: { position: 'absolute', top: 60, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
-  offlineBadge: { position: 'absolute', left: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  offlineBadge: { position: 'absolute', right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   routeFab: {
     position: 'absolute', right: 12, width: 52, height: 52, borderRadius: 26,
     backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',

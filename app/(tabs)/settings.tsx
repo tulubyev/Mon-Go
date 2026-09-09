@@ -258,15 +258,17 @@ function LanguageSection() {
   return (
     <View style={styles.menuSection}>
       <Text style={styles.menuSectionTitle}>{t('settings.language')}</Text>
-      {LANGUAGES.map(lang => (
-        <Pressable key={lang.code} style={styles.menuItem} onPress={() => handleLanguage(lang.code)}>
-          <View style={styles.menuItemLeft}>
-            <Text style={styles.langFlag}>{lang.flag}</Text>
-            <Text style={styles.menuItemText}>{lang.nativeName}</Text>
-          </View>
-          {current === lang.code && <Ionicons name="checkmark" size={18} color={BRAND} />}
-        </Pressable>
-      ))}
+      <View style={styles.langIconRow}>
+        {LANGUAGES.map(lang => (
+          <Pressable
+            key={lang.code}
+            style={[styles.langIconBtn, current === lang.code && styles.langIconBtnActive]}
+            onPress={() => handleLanguage(lang.code)}
+          >
+            <Text style={styles.langIconFlag}>{lang.flag}</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
@@ -321,7 +323,10 @@ const styles = StyleSheet.create({
   menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   menuIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   menuItemText: { fontSize: 14, color: '#1E293B', fontWeight: '500' },
-  langFlag: { fontSize: 20, width: 30, textAlign: 'center' },
+  langIconRow: { flexDirection: 'row', gap: 10, paddingVertical: 10 },
+  langIconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1F5F9' },
+  langIconBtnActive: { backgroundColor: '#E0EEFF' },
+  langIconFlag: { fontSize: 20 },
 
   logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 16, marginTop: 8, height: 48, borderRadius: 12, borderWidth: 1.5, borderColor: '#FEE2E2', backgroundColor: '#FFF5F5' },
   logoutText: { color: '#EF4444', fontSize: 14, fontWeight: '700' },
