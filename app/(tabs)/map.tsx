@@ -1,7 +1,7 @@
 import { Platform, StyleSheet, Text, View, Pressable, ScrollView, Linking, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, POI, RouteResult } from '@/services/api';
 import { MAX_CARD_WIDTH } from '@/constants/Layout';
@@ -23,19 +23,27 @@ export default function MapScreen() {
 // No 'all' pseudo-entry — "all visible" is just every real category selected at
 // once in the multi-select control below (MapLayersControl), same model as
 // BaikalLove's map filter dropdown.
+// Toggle set — these are the categories the OSM importer (TMB
+// scripts/import-osm-poi.js) actually writes. museum/restaurant/cafe/hotel
+// etc. from the earlier hand-curated data collapse into these buckets, so
+// they were dead toggles once the country-wide import landed.
 const POI_CATEGORIES: Array<{ key: string; icon: string; color: string }> = [
-  { key: 'museum',     icon: '🏛️', color: '#8B5CF6' },
-  { key: 'restaurant', icon: '🍽️', color: '#EF4444' },
-  { key: 'cafe',       icon: '☕', color: '#F97316' },
-  { key: 'hotel',      icon: '🏨', color: '#0EA5E9' },
-  { key: 'sight',      icon: '👁️', color: '#10B981' },
-  { key: 'market',     icon: '🛒', color: '#EC4899' },
-  { key: 'camp',       icon: '🏕️', color: '#65A30D' },
-  { key: 'recreation', icon: '🌄', color: '#06B6D4' },
-  { key: 'transport',  icon: '🚉', color: '#64748B' },
-  { key: 'safety',     icon: '🏥', color: '#DC2626' },
-  { key: 'fuel',       icon: '⛽', color: '#F59E0B' },
+  { key: 'sight',         icon: '👁️', color: '#10B981' },
+  { key: 'food',          icon: '🍽️', color: '#EF4444' },
+  { key: 'accommodation', icon: '🏨', color: '#0EA5E9' },
+  { key: 'camp',          icon: '🏕️', color: '#65A30D' },
+  { key: 'transport',     icon: '🚉', color: '#64748B' },
+  { key: 'safety',        icon: '🏥', color: '#DC2626' },
+  { key: 'fuel',          icon: '⛽', color: '#F59E0B' },
 ];
+
+// Dot colour for every category we might still see, toggle or not.
+const CATEGORY_COLOR: Record<string, string> = {
+  sight: '#10B981', food: '#EF4444', accommodation: '#0EA5E9', camp: '#65A30D',
+  transport: '#64748B', safety: '#DC2626', fuel: '#F59E0B',
+  museum: '#8B5CF6', restaurant: '#EF4444', cafe: '#F97316', hotel: '#0EA5E9',
+  market: '#EC4899', recreation: '#06B6D4', user: '#015197',
+};
 
 // ─── Native map (iOS / Android) ───────────────────────────────────────────────
 function MapNativeScreen() {
@@ -71,6 +79,42 @@ function MapNativeScreen() {
   }, []);
 
   const filtered = pois.filter(p => activeFilters.has(p.category));
+
+  const cameraRef = useRef<any>(null);
+  const poiSourceRef = useRef<any>(null);
+
+  // One clustered GeoJSON source instead of thousands of native <Marker>
+  // views — the v11 docs call Marker out as slow for large static sets, and
+  // the country-wide OSM import pushed the count into the thousands.
+  const poiCollection = useMemo(() => ({
+    type: 'FeatureCollection' as const,
+    features: filtered.map(p => ({
+      type: 'Feature' as const,
+      id: p.id,
+      geometry: { type: 'Point' as const, coordinates: [p.lng, p.lat] },
+      properties: { poiId: p.id, color: CATEGORY_COLOR[p.category] || '#015197' },
+    })),
+  }), [filtered]);
+
+  const handlePoiPress = async (e: any) => {
+    // Stop the tap also reaching Map.onPress, which would clear the selection.
+    e?.stopPropagation?.();
+    const ne = e?.nativeEvent ?? e;
+    const feat = ne?.features?.[0];
+    if (!feat) return;
+    if (feat.properties?.point_count) {
+      const coords = feat.geometry?.coordinates;
+      let zoom = 12;
+      try {
+        zoom = (await poiSourceRef.current?.getClusterExpansionZoom(feat.properties.cluster_id)) ?? 12;
+      } catch {}
+      cameraRef.current?.flyTo?.({ center: coords, zoom, duration: 400 });
+      return;
+    }
+    const id = feat.properties?.poiId ?? feat.id;
+    const poi = pois.find(p => p.id === id);
+    if (poi) setSelected(poi);
+  };
 
   useEffect(() => {
     if (routePoints.length !== 2) return;
@@ -122,21 +166,58 @@ function MapNativeScreen() {
       {/* Map — v11: Map + mapStyle prop, Camera initialViewState, Marker lngLat */}
       <Map style={styles.map} mapStyle={mapStyle} onPress={handleMapPress}>
         <Camera
+          ref={cameraRef}
           initialViewState={{ center: [103.8467, 46.8625], zoom: 5 }}
         />
         {userLocationVisible && <UserLocation />}
-        {filtered.map(poi => (
-          <Marker
-            key={`poi-${poi.id}`}
-            id={`poi-${poi.id}`}
-            lngLat={[poi.lng, poi.lat] as [number, number]}
-            onPress={() => setSelected(poi)}
-          >
-            <View style={styles.marker}>
-              <Text style={styles.markerIcon}>{poi.icon || '📍'}</Text>
-            </View>
-          </Marker>
-        ))}
+
+        {/* POIs — clustered source, colour-coded dots, tap a dot for the card */}
+        <GeoJSONSource
+          id="pois"
+          ref={poiSourceRef}
+          data={poiCollection}
+          cluster
+          clusterRadius={55}
+          clusterMaxZoom={13}
+          onPress={handlePoiPress}
+        >
+          <Layer
+            id="poi-clusters"
+            type="circle"
+            filter={['has', 'point_count']}
+            style={{
+              circleColor: '#015197',
+              circleOpacity: 0.9,
+              circleRadius: ['step', ['get', 'point_count'], 15, 25, 20, 100, 26],
+              circleStrokeWidth: 2,
+              circleStrokeColor: '#fff',
+            }}
+          />
+          <Layer
+            id="poi-cluster-count"
+            type="symbol"
+            filter={['has', 'point_count']}
+            style={{
+              textField: ['get', 'point_count_abbreviated'],
+              textSize: 12,
+              textColor: '#fff',
+              textFont: ['Noto Sans Regular'],
+              textAllowOverlap: true,
+              textIgnorePlacement: true,
+            }}
+          />
+          <Layer
+            id="poi-dot"
+            type="circle"
+            filter={['!', ['has', 'point_count']]}
+            style={{
+              circleColor: ['get', 'color'],
+              circleRadius: 7,
+              circleStrokeWidth: 2,
+              circleStrokeColor: '#fff',
+            }}
+          />
+        </GeoJSONSource>
 
         {/* Route pins */}
         {routePoints.map((pt, i) => (
@@ -392,7 +473,7 @@ const styles = StyleSheet.create({
   map: { flex: 1 },
   topBar: { position: 'absolute', left: 12, zIndex: 10 },
   webFilterBar: { padding: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee', alignItems: 'flex-start' },
-  marker: { alignItems: 'center', justifyContent: 'center' },
+  marker: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   markerIcon: { fontSize: 24 },
   loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)' },
   countBadge: { position: 'absolute', top: 60, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
