@@ -75,6 +75,7 @@ function MapNativeScreen() {
   useEffect(() => {
     if (routePoints.length !== 2) return;
     const [from, to] = routePoints;
+    if (!from || !to) return;
     setRouteLoading(true);
     setRouteError(false);
     api.getRoute({ lat: from[1], lng: from[0] }, { lat: to[1], lng: to[0] })
@@ -92,12 +93,18 @@ function MapNativeScreen() {
     if (routingMode) resetRoute();
     setRoutingMode(!routingMode);
   };
-  const handleMapPress = (e: { lngLat: [number, number] }) => {
-    if (routingMode) {
-      if (routePoints.length < 2) setRoutePoints(prev => [...prev, e.lngLat]);
+  // v11 fires onPress with a NativeSyntheticEvent — the coordinate is at
+  // e.nativeEvent.lngLat ([lng, lat]), not e.lngLat. Reading the wrong path
+  // pushed `undefined` into routePoints: no pin dropped, then the routing
+  // effect hit `undefined[1]` ("cannot convert undefined value to object").
+  const handleMapPress = (e: { nativeEvent?: { lngLat?: [number, number] } }) => {
+    if (!routingMode) {
+      setSelected(null);
       return;
     }
-    setSelected(null);
+    const lngLat = e?.nativeEvent?.lngLat;
+    if (!lngLat) return;
+    setRoutePoints(prev => (prev.length >= 2 ? prev : [...prev, lngLat]));
   };
 
   // One style file per locale (TMB/scripts/gen-map-styles.js) — the native
