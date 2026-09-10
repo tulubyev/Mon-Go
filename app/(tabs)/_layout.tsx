@@ -12,9 +12,11 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
 /**
- * Five visible tabs, mirroring the layout that works in BaikalLove.
- * Map, phrases, chat and ads stay registered (so cards on the home screen can
- * still route to them) but are hidden from the bar with `href: null`.
+ * Five visible tabs: Home, Wiki, Partners, Map, Account. Chat moved out of
+ * the bar to live only as a home-screen tile (was duplicated in both places
+ * before) — Map took its slot instead. Phrases/ads stay registered (so
+ * home-screen cards can still route to them) but hidden from the bar with
+ * `href: null`; chat is the same now too.
  */
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -78,10 +80,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="map"
         options={{
-          tabBarLabel: t('tabs.chat'),
-          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" color={color} size={size} />,
+          tabBarLabel: t('tabs.map'),
+          tabBarIcon: ({ color, size }) => <Ionicons name="map" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
@@ -93,7 +95,7 @@ export default function TabLayout() {
       />
 
       {/* Reachable from home-screen cards, but not shown in the bar. */}
-      <Tabs.Screen name="map" options={{ title: t('tabs.map'), href: null }} />
+      <Tabs.Screen name="chat" options={{ title: t('tabs.chat'), href: null }} />
       <Tabs.Screen name="phrases" options={{ title: t('tabs.phrases'), href: null }} />
       <Tabs.Screen name="ads" options={{ title: t('tabs.ads'), href: null }} />
     </Tabs>

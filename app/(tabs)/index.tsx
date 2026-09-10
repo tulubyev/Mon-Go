@@ -9,11 +9,12 @@ import { changeLanguage, getCurrentLanguage } from '@/lib/i18n';
 
 const GRID_PADDING = 12;
 const CARD_MARGIN = 5;
-// Fixed 4×5 grid — 17 topics (9 original + Photo/Video/Events/Calendar/SOS/
-// Weather/Nature/Emotions, ported from BaikalLove's home screen) +
-// map/chat/ads = exactly 20 tiles, so 4 columns always fills 5 even rows on
-// every device instead of reflowing by width.
-const NUM_COLUMNS = 4;
+// Fixed 3×6 grid — 16 topics (9 original + Photo/Video/Events/Calendar/
+// Weather/Nature/Emotions, ported from BaikalLove's home screen) + chat/ads
+// = exactly 18 tiles, so 3 columns always fills 6 even rows on every device
+// instead of reflowing by width. Map is no longer a tile here — it moved to
+// the bottom nav bar (see (tabs)/_layout.tsx).
+const NUM_COLUMNS = 3;
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
@@ -36,7 +37,6 @@ export default function HomeScreen() {
 
   const gridData = [
     ...TOPICS,
-    { key: 'map', icon: '🗺️', title: t('tabs.map'), route: '/map' },
     { key: 'chat', icon: '💬', title: t('tabs.chat'), route: '/chat' },
     { key: 'ads', icon: '📋', title: t('tabs.ads'), route: '/ads' },
   ];
