@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import {
-  StyleSheet, ScrollView, Pressable, Text, View,
-  Linking, ActivityIndicator, RefreshControl,
+  StyleSheet, ScrollView, Pressable, Text, View, TextInput, Modal,
+  Linking, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 import { api, type Partner } from '@/services/api';
 
 const TYPES = [
@@ -26,9 +28,19 @@ const TIER_BADGE: Record<string, { label: string; color: string }> = {
 
 export default function PartnersScreen() {
   const { t, i18n } = useTranslation();
+  const { isAuthenticated } = useAuth();
   const lang = i18n.language || 'ru';
   const tabBarHeight = useBottomTabBarHeight();
   const [type, setType] = useState<string>('all');
+  const [orderPartner, setOrderPartner] = useState<Partner | null>(null);
+
+  const startOrder = (p: Partner) => {
+    if (!isAuthenticated) {
+      router.push('/(auth)/login' as any);
+      return;
+    }
+    setOrderPartner(p);
+  };
 
   const { data: partners, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['partners', type, lang],
@@ -92,16 +104,76 @@ export default function PartnersScreen() {
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         >
           {partners.map(p => (
-            <PartnerCard key={p.id} partner={p} onOpen={open} />
+            <PartnerCard key={p.id} partner={p} onOpen={open} onOrder={startOrder} />
           ))}
           <View style={{ height: 24 }} />
         </ScrollView>
+      )}
+
+      {orderPartner && (
+        <OrderModal partner={orderPartner} onClose={() => setOrderPartner(null)} />
       )}
     </SafeAreaView>
   );
 }
 
-function PartnerCard({ partner, onOpen }: { partner: Partner; onOpen: (url: string) => void }) {
+function OrderModal({ partner, onClose }: { partner: Partner; onClose: () => void }) {
+  const { t } = useTranslation();
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const send = async () => {
+    if (sending) return;
+    setSending(true);
+    try {
+      await api.createOrder({ partnerId: partner.id, message: message.trim() || undefined });
+      onClose();
+      Alert.alert('', t('orders.placed'));
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err.message || t('common.error'));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Modal transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView style={styles.modalWrap} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={styles.modalCard}>
+          <View style={styles.modalHead}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.modalTitle}>{t('orders.placeTitle')}</Text>
+              <Text style={styles.modalSub} numberOfLines={1}>{partner.name}</Text>
+            </View>
+            <Pressable hitSlop={10} onPress={onClose}><Ionicons name="close" size={22} color="#94A3B8" /></Pressable>
+          </View>
+
+          <Text style={styles.modalLabel}>{t('orders.messageLabel')}</Text>
+          <TextInput
+            style={styles.modalInput}
+            value={message}
+            onChangeText={setMessage}
+            multiline
+            autoFocus
+            placeholder={t('orders.messagePlaceholder')}
+            placeholderTextColor="#94A3B8"
+          />
+
+          <Pressable style={[styles.modalBtn, sending && styles.modalBtnDisabled]} onPress={send} disabled={sending}>
+            {sending ? <ActivityIndicator color="#fff" /> : (
+              <>
+                <Ionicons name="paper-plane" size={16} color="#fff" />
+                <Text style={styles.modalBtnText}>{t('orders.send')}</Text>
+              </>
+            )}
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+function PartnerCard({ partner, onOpen, onOrder }: { partner: Partner; onOpen: (url: string) => void; onOrder: (p: Partner) => void }) {
   const { t } = useTranslation();
   const tier = partner.subscription_tier ? TIER_BADGE[partner.subscription_tier] : undefined;
   const typeMeta = TYPES.find(item => item.key === partner.type);
@@ -167,6 +239,11 @@ function PartnerCard({ partner, onOpen }: { partner: Partner; onOpen: (url: stri
           </Pressable>
         )}
       </View>
+
+      <Pressable style={styles.orderBtn} onPress={() => onOrder(partner)}>
+        <Ionicons name="bag-check-outline" size={16} color="#fff" />
+        <Text style={styles.orderBtnText}>{t('orders.place')}</Text>
+      </Pressable>
     </View>
   );
 }
@@ -210,4 +287,18 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 10 },
   actionText: { fontSize: 12, fontWeight: '700' },
+
+  orderBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, backgroundColor: '#015197', borderRadius: 12, paddingVertical: 11 },
+  orderBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+
+  modalWrap: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(15,23,42,0.4)' },
+  modalCard: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 34 },
+  modalHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 8 },
+  modalTitle: { fontSize: 17, fontWeight: '800', color: '#1E293B' },
+  modalSub: { fontSize: 13, color: '#64748B', marginTop: 2 },
+  modalLabel: { fontSize: 13, fontWeight: '600', color: '#475569', marginBottom: 6, marginTop: 6 },
+  modalInput: { backgroundColor: '#F8FAFC', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#1E293B', minHeight: 96, textAlignVertical: 'top' },
+  modalBtn: { flexDirection: 'row', gap: 8, backgroundColor: '#015197', borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center', marginTop: 18 },
+  modalBtnDisabled: { backgroundColor: '#94A3B8' },
+  modalBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

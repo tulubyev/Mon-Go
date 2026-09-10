@@ -105,6 +105,11 @@ function RootLayoutNav() {
           <Stack.Screen name="change-password" options={{ title: t('auth.changePassword'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="verify-phone" options={{ title: t('auth.verifyPhoneTitle'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="subscription" options={{ title: t('auth.subscription'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="partner-apply" options={{ title: t('partner.applyTitle'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="partner-dashboard" options={{ title: t('partner.dashboard'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="partner-profile" options={{ title: t('partner.editProfile'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="my-orders" options={{ title: t('orders.mine'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="notifications" options={{ title: t('notifications.title'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="welcome" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
         </Stack>
       </AuthProvider>

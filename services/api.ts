@@ -300,7 +300,121 @@ export const api = {
 
   cancelSubscription: () =>
     request<{ success: boolean }>('/api/subscriptions/cancel', { method: 'POST' }),
+
+  // ── Partner self-service ──────────────────────────────────────────────────
+  partnerApply: (data: PartnerApplyInput) =>
+    request<PartnerProfile>('/api/partner/apply', { method: 'POST', body: JSON.stringify(data) }),
+  getPartnerMe: () => request<PartnerProfile | null>('/api/partner/me'),
+  updatePartnerMe: (data: Partial<PartnerApplyInput>) =>
+    request<PartnerProfile>('/api/partner/me', { method: 'PUT', body: JSON.stringify(data) }),
+
+  getPartnerServices: () => request<PartnerService[]>('/api/partner/services'),
+  createPartnerService: (data: PartnerServiceInput) =>
+    request<PartnerService>('/api/partner/services', { method: 'POST', body: JSON.stringify(data) }),
+  updatePartnerService: (id: number, data: Partial<PartnerServiceInput> & { active?: boolean }) =>
+    request<PartnerService>(`/api/partner/services/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deletePartnerService: (id: number) =>
+    request<{ ok: boolean }>(`/api/partner/services/${id}`, { method: 'DELETE' }),
+
+  getPartnerOrders: (status?: string) =>
+    request<Order[]>(`/api/partner/orders${status ? `?status=${status}` : ''}`),
+  updatePartnerOrder: (id: number, data: { status?: OrderStatus; note?: string }) =>
+    request<Order>(`/api/partner/orders/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  // ── Customer orders + notifications ───────────────────────────────────────
+  createOrder: (data: { partnerId: number; serviceId?: number; message?: string; customerName?: string; customerPhone?: string }) =>
+    request<Order>('/api/orders', { method: 'POST', body: JSON.stringify(data) }),
+  getMyOrders: () => request<Order[]>('/api/orders/mine'),
+
+  getNotifications: () => request<AppNotification[]>('/api/notifications'),
+  markNotificationRead: (id: number) =>
+    request<{ ok: boolean }>(`/api/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllNotificationsRead: () =>
+    request<{ ok: boolean }>('/api/notifications/read-all', { method: 'POST' }),
 };
+
+export type PartnerStatus = 'pending' | 'approved' | 'rejected';
+export type OrderStatus = 'new' | 'accepted' | 'declined' | 'completed' | 'cancelled';
+
+export interface PartnerApplyInput {
+  name: string;
+  type?: string;
+  phone?: string;
+  email?: string;
+  url?: string;
+  telegram?: string;
+  whatsapp?: string;
+  description?: string;
+  address?: string;
+}
+
+export interface PartnerProfile {
+  id: number;
+  name: string;
+  type: string | null;
+  phone: string | null;
+  email: string | null;
+  url: string | null;
+  telegram: string | null;
+  whatsapp: string | null;
+  description_ru: string | null;
+  address: string | null;
+  status: PartnerStatus;
+  verified: boolean;
+  active: boolean;
+}
+
+export interface PartnerServiceInput {
+  title: string;
+  description?: string;
+  serviceType?: string;
+  priceFrom?: number | null;
+  priceCurrency?: string;
+  duration?: string;
+}
+
+export interface PartnerService {
+  id: number;
+  partner_id: number;
+  service_type: string | null;
+  title_ru: string | null;
+  description_ru: string | null;
+  price_from: number | null;
+  price_currency: string;
+  duration: string | null;
+  active: boolean;
+}
+
+export interface Order {
+  id: number;
+  user_id: number;
+  partner_id: number;
+  service_id: number | null;
+  customer_name: string | null;
+  customer_phone: string | null;
+  message: string | null;
+  price: number | null;
+  price_currency: string;
+  status: OrderStatus;
+  partner_note: string | null;
+  created_at: string;
+  updated_at: string;
+  // only present on GET /api/orders/mine (joined)
+  partner_name?: string;
+  partner_phone?: string;
+  service_title?: string;
+}
+
+export interface AppNotification {
+  id: number;
+  user_id: number;
+  type: string;
+  title: string;
+  body: string;
+  order_id: number | null;
+  read: boolean;
+  created_at: string;
+}
 
 export interface SubscriptionPlan {
   id: 'basic' | 'premium' | 'b2b';

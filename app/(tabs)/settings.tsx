@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { changeLanguage, getCurrentLanguage } from '@/lib/i18n';
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/api';
 
@@ -125,8 +126,21 @@ function ProfileScreen() {
   const currentTier = user.subscriptionTier && user.subscriptionTier !== 'free' ? user.subscriptionTier : null;
   const tierColor = currentTier === 'premium' ? '#7C3AED' : currentTier === 'b2b' ? '#D97706' : '#0EA5E9';
 
+  // Partner entry flips between "become a partner" and "partner dashboard"
+  // depending on whether this user already has a partner profile.
+  const partnerQ = useQuery({ queryKey: ['partner-me'], queryFn: () => api.getPartnerMe() });
+  const hasPartner = !!partnerQ.data;
+
   const menu: Array<{ icon: keyof typeof Ionicons.glyphMap; label: string; color: string; onPress: () => void }> = [
     { icon: currentTier ? 'star' : 'star-outline', label: t('auth.subscription'), color: tierColor, onPress: () => router.push('/subscription' as any) },
+    { icon: 'bag-handle-outline', label: t('orders.mine'), color: '#0EA5E9', onPress: () => router.push('/my-orders' as any) },
+    { icon: 'notifications-outline', label: t('notifications.title'), color: '#F59E0B', onPress: () => router.push('/notifications' as any) },
+    {
+      icon: hasPartner ? 'briefcase' : 'briefcase-outline',
+      label: hasPartner ? t('partner.dashboard') : t('partner.become'),
+      color: '#015197',
+      onPress: () => router.push((hasPartner ? '/partner-dashboard' : '/partner-apply') as any),
+    },
     { icon: 'lock-closed-outline', label: t('auth.changePassword'), color: '#8B5CF6', onPress: () => router.push('/change-password' as any) },
     { icon: 'heart-outline', label: t('auth.favorites'), color: '#EC4899', onPress: notReady },
   ];
