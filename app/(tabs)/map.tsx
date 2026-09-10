@@ -45,6 +45,12 @@ const CATEGORY_COLOR: Record<string, string> = {
   market: '#EC4899', recreation: '#06B6D4', user: '#015197',
 };
 
+// Sprite image name per category (see TMB scripts/gen-poi-sprite.js). The
+// sheet only has the 7 real importer categories, so anything else falls back
+// to the sight icon.
+const SPRITE_NAMES = new Set(['sight', 'food', 'accommodation', 'camp', 'transport', 'safety', 'fuel']);
+const spriteIcon = (category: string) => (SPRITE_NAMES.has(category) ? category : 'sight');
+
 // ─── Native map (iOS / Android) ───────────────────────────────────────────────
 function MapNativeScreen() {
   const { t, i18n } = useTranslation();
@@ -92,7 +98,11 @@ function MapNativeScreen() {
       type: 'Feature' as const,
       id: p.id,
       geometry: { type: 'Point' as const, coordinates: [p.lng, p.lat] },
-      properties: { poiId: p.id, color: CATEGORY_COLOR[p.category] || '#015197' },
+      properties: {
+        poiId: p.id,
+        color: CATEGORY_COLOR[p.category] || '#015197',
+        icon: spriteIcon(p.category),
+      },
     })),
   }), [filtered]);
 
@@ -206,15 +216,29 @@ function MapNativeScreen() {
               textIgnorePlacement: true,
             }}
           />
+          {/* Colour halo behind the emoji so it reads against any basemap */}
           <Layer
-            id="poi-dot"
+            id="poi-halo"
             type="circle"
             filter={['!', ['has', 'point_count']]}
             style={{
               circleColor: ['get', 'color'],
-              circleRadius: 7,
-              circleStrokeWidth: 2,
-              circleStrokeColor: '#fff',
+              circleRadius: 15,
+              circleOpacity: 0.18,
+              circleStrokeWidth: 1.5,
+              circleStrokeColor: ['get', 'color'],
+              circleStrokeOpacity: 0.5,
+            }}
+          />
+          <Layer
+            id="poi-icon"
+            type="symbol"
+            filter={['!', ['has', 'point_count']]}
+            style={{
+              iconImage: ['get', 'icon'],
+              iconSize: 0.42,
+              iconAllowOverlap: false,
+              iconIgnorePlacement: false,
             }}
           />
         </GeoJSONSource>
