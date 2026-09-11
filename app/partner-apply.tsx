@@ -19,12 +19,13 @@ export default function PartnerApplyScreen() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [form, setForm] = useState<PartnerApplyInput>({ name: '', type: 'tour_agency' });
+  const [customType, setCustomType] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const set = <K extends keyof PartnerApplyInput>(k: K, v: PartnerApplyInput[K]) =>
     setForm(prev => ({ ...prev, [k]: v }));
 
-  const canSubmit = form.name.trim().length >= 2;
+  const canSubmit = form.name.trim().length >= 2 && (form.type || '').trim().length > 0;
 
   const submit = async () => {
     if (!canSubmit || submitting) return;
@@ -68,14 +69,19 @@ export default function PartnerApplyScreen() {
         {field('name', t('partner.name') + ' *')}
 
         <Text style={styles.label}>{t('partner.type')}</Text>
-        <View style={styles.typeRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.typeRow}
+          keyboardShouldPersistTaps="handled"
+        >
           {TYPES.map(ty => {
-            const active = form.type === ty;
+            const active = !customType && form.type === ty;
             return (
               <Pressable
                 key={ty}
                 style={[styles.typeChip, active && styles.typeChipActive]}
-                onPress={() => set('type', ty)}
+                onPress={() => { setCustomType(false); set('type', ty); }}
               >
                 <Text style={[styles.typeChipText, active && styles.typeChipTextActive]}>
                   {t(`partners.types.${ty}`)}
@@ -83,7 +89,28 @@ export default function PartnerApplyScreen() {
               </Pressable>
             );
           })}
-        </View>
+          {/* "+" chip — like the wiki new-article category flow: pick a
+              preset or type your own. Saved straight to partners.type
+              (free-text column), no shared taxonomy. */}
+          <Pressable
+            style={[styles.typeChip, customType && styles.typeChipActive]}
+            onPress={() => { setCustomType(true); set('type', ''); }}
+          >
+            <Text style={[styles.typeChipText, customType && styles.typeChipTextActive]}>
+              ＋ {t('partner.customType')}
+            </Text>
+          </Pressable>
+        </ScrollView>
+        {customType && (
+          <TextInput
+            style={[styles.input, { marginTop: 8 }]}
+            value={form.type || ''}
+            onChangeText={v => set('type', v)}
+            placeholder={t('partner.customTypePlaceholder')}
+            placeholderTextColor="#94A3B8"
+            autoFocus
+          />
+        )}
 
         {field('phone', t('partner.phone'), { keyboardType: 'phone-pad' })}
         {field('email', t('partner.email'), { keyboardType: 'email-address' })}
@@ -117,7 +144,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '600', color: '#475569', marginBottom: 6, marginTop: 14 },
   input: { backgroundColor: '#F8FAFC', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#1E293B' },
   inputMultiline: { minHeight: 90, textAlignVertical: 'top' },
-  typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2 },
+  typeRow: { flexDirection: 'row', gap: 8, marginTop: 2, paddingRight: 24 },
   typeChip: { paddingHorizontal: 13, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#fff' },
   typeChipActive: { backgroundColor: BRAND, borderColor: BRAND },
   typeChipText: { fontSize: 13, fontWeight: '600', color: '#475569' },

@@ -4,7 +4,7 @@
     "map": "地图",
     "phrases": "短语",
     "chat": "对话",
-    "ads": "广告",
+    "ads": "服务",
     "wiki": "百科",
     "partners": "合作伙伴"
   },
@@ -298,6 +298,8 @@
     "applySub": "介绍您的业务 — 审核员将审核您的申请。",
     "name": "名称",
     "type": "类型",
+    "customType": "自定义类型",
+    "customTypePlaceholder": "例如：司机、律师、摄影师…",
     "phone": "电话",
     "email": "邮箱",
     "url": "网站",

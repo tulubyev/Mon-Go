@@ -4,7 +4,7 @@
     "map": "Map",
     "phrases": "Phrases",
     "chat": "Chat",
-    "ads": "Ads",
+    "ads": "Services",
     "wiki": "Wiki",
     "partners": "Partners"
   },
@@ -298,6 +298,8 @@
     "applySub": "Tell us about your business — a moderator will review your application.",
     "name": "Name",
     "type": "Type",
+    "customType": "Custom type",
+    "customTypePlaceholder": "e.g. driver, lawyer, photographer…",
     "phone": "Phone",
     "email": "Email",
     "url": "Website",

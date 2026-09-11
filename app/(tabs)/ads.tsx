@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 const BASE_URL = 'https://mon-go.ru';
 
@@ -85,6 +87,18 @@ export default function AdsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Partners — moved here off the bottom tab bar */}
+      <Pressable style={styles.partnerBanner} onPress={() => router.push('/partners' as any)}>
+        <View style={styles.partnerIcon}>
+          <Ionicons name="people" size={20} color="#fff" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.partnerBannerTitle}>Партнёры</Text>
+          <Text style={styles.partnerBannerSub}>Турфирмы, гиды, отели, прокат авто, визы</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color="#3b82f6" />
+      </Pressable>
+
       {/* Category tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catBar} contentContainerStyle={styles.catContent}>
         {CATEGORIES.map(cat => (
@@ -287,6 +301,10 @@ function CreateAdModal({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
+  partnerBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  partnerIcon: { width: 38, height: 38, borderRadius: 10, backgroundColor: '#3b82f6', alignItems: 'center', justifyContent: 'center' },
+  partnerBannerTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
+  partnerBannerSub: { fontSize: 12, color: '#888', marginTop: 1 },
   catBar: { maxHeight: 52, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
   catContent: { paddingHorizontal: 10, alignItems: 'center', gap: 6, paddingVertical: 8 },
   catChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 16, backgroundColor: '#f5f5f5', borderWidth: 1, borderColor: '#eee' },
