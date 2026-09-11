@@ -5,8 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { TOPICS } from '@/constants/topics';
 import { readingContainerStyle } from '@/constants/Layout';
 
-const SPECIAL_SCREENS: Record<string, string> = {
-  transport: '/transport',
+// A quick-link button shown above the regular subquestions, for a topic
+// that needs one entry point that isn't just "ask this canned question in
+// chat" (transport's own schedules screen) or is the chat itself, opened
+// with no preset question — Chat no longer has its own home-grid tile, this
+// is how the Язык topic reaches it now, relabeled "Спросить".
+const SPECIAL_LINKS: Record<string, { route: string; label: string }> = {
+  transport: { route: '/transport', label: '📅 Расписания транспорта' },
+  language: { route: '/chat', label: '💬 Спросить' },
 };
 
 export default function TopicScreen() {
@@ -28,14 +34,12 @@ export default function TopicScreen() {
           <Text style={styles.overviewText}>{topic.overview}</Text>
         </View>
         <Text style={styles.subheading}>Вопросы</Text>
-        {SPECIAL_SCREENS[key] && (
+        {SPECIAL_LINKS[key] && (
           <Pressable
             style={({ pressed }) => [styles.sqBtn, styles.sqBtnSpecial, pressed && styles.sqBtnPressed]}
-            onPress={() => router.push(SPECIAL_SCREENS[key] as any)}
+            onPress={() => router.push(SPECIAL_LINKS[key].route as any)}
           >
-            <Text style={styles.sqLabel}>
-              {key === 'transport' ? '📅 Расписания транспорта' : '▶ Открыть'}
-            </Text>
+            <Text style={styles.sqLabel}>{SPECIAL_LINKS[key].label}</Text>
             <Text style={styles.sqArrow}>›</Text>
           </Pressable>
         )}

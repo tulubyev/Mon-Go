@@ -7,34 +7,36 @@ import { TOPICS } from '@/constants/topics';
 
 const GRID_PADDING = 12;
 const CARD_MARGIN = 5;
-// Fixed 3×6 grid — 16 topics (9 original + Photo/Video/Events/Calendar/
-// Weather/Nature/Emotions, ported from BaikalLove's home screen) + chat/ads
-// = exactly 18 tiles, so 3 columns always fills 6 even rows on every device
-// instead of reflowing by width. Map is no longer a tile here — it moved to
-// the bottom nav bar (see (tabs)/_layout.tsx). Language picking moved to
-// Account — this screen no longer has its own row for it.
+// Fixed-width 3-column grid — 16 topics (9 original + Photo/Video/Events/
+// Calendar/Weather/Nature/Emotions, ported from BaikalLove's home screen) +
+// Ads = 17 tiles, so the last row runs 2 wide instead of reflowing by
+// device width. Map is no longer a tile here — it moved to the bottom nav
+// bar (see (tabs)/_layout.tsx). Language picking moved to Account — this
+// screen no longer has its own row for it. Chat isn't a tile either — it's
+// reached as "Спросить" from inside the Язык topic (app/topic/[key].tsx).
 const NUM_COLUMNS = 3;
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
-// Chat/Ads aren't in constants/topics.ts — they're app sections, not wiki-
-// style topics — so they're added here before laying the grid out.
+// Ads isn't in constants/topics.ts — it's an app section, not a wiki-style
+// topic — so it's added here before laying the grid out. Chat no longer
+// gets its own tile: it moved inside the Язык topic screen as a "Спросить"
+// quick-link (see app/topic/[key].tsx's SPECIAL_LINKS).
 const EXTRA_TILES = [
-  { key: 'chat', icon: '💬', route: '/chat' },
   { key: 'ads', icon: '📋', route: '/ads' },
 ];
 const ALL_TILES = [...TOPICS, ...EXTRA_TILES];
 
-// Explicit placement (not just TOPICS order + append) so specific pairings
-// land on the same row of the 3-column grid: Chat sits with Язык, and
-// Безопасность ("SOS") sits with Услуги on the last row.
+// Explicit placement (not just TOPICS order + append) so Безопасность
+// ("SOS") sits with Услуги on the last row. 17 tiles now that Chat moved
+// out — the last row runs 2 wide instead of 3, which is fine.
 const GRID_ORDER = [
   'transport', 'accommodation', 'finance',
-  'communication', 'language', 'chat',
-  'planning', 'ulaanbaatar', 'food',
-  'weather', 'nature', 'emotions',
-  'events', 'calendar', 'photos',
-  'videos', 'safety', 'ads',
+  'communication', 'language', 'planning',
+  'ulaanbaatar', 'food', 'weather',
+  'nature', 'emotions', 'events',
+  'calendar', 'photos', 'videos',
+  'safety', 'ads',
 ];
 const gridData = GRID_ORDER
   .map(key => ALL_TILES.find(item => item.key === key))
