@@ -110,10 +110,11 @@ function RootLayoutNav() {
           <Stack.Screen name="partner-profile" options={{ title: t('partner.editProfile'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="my-orders" options={{ title: t('orders.mine'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="notifications" options={{ title: t('notifications.title'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="photos" options={{ headerShown: false }} />
-          <Stack.Screen name="videos" options={{ headerShown: false }} />
-          <Stack.Screen name="events" options={{ headerShown: false }} />
-          <Stack.Screen name="calendar" options={{ headerShown: false }} />
+          {/* photos/videos/events/calendar moved into (tabs) — they used to
+              live here as top-level Stack screens, which rendered full-
+              screen with no bottom tab bar. Registering them inside the
+              Tabs group instead (as hidden tabs, see (tabs)/_layout.tsx)
+              keeps the bar visible, same as ads/chat/phrases/partners. */}
           <Stack.Screen name="welcome" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
         </Stack>
       </AuthProvider>

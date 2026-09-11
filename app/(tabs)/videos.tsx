@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -28,6 +29,7 @@ const TABS: { key: MediaSort; label: string }[] = [
 export default function VideosScreen() {
   const { isAuthenticated, user } = useAuth();
   const qc = useQueryClient();
+  const tabBarHeight = useBottomTabBarHeight();
   const [sort, setSort] = useState<MediaSort>('recent');
   const [showUpload, setShowUpload] = useState(false);
 
@@ -57,7 +59,7 @@ export default function VideosScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🎬 Видео</Text>
         <Pressable style={styles.uploadBtn} onPress={() => requireAuth(() => setShowUpload(true))}>
@@ -85,7 +87,7 @@ export default function VideosScreen() {
         <FlatList
           data={postsQ.data.posts}
           keyExtractor={p => String(p.id)}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: tabBarHeight + 16 }]}
           refreshing={postsQ.isRefetching}
           onRefresh={postsQ.refetch}
           renderItem={({ item }) => {

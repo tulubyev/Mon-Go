@@ -12,12 +12,13 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
 /**
- * Five visible tabs: Home, Wiki, Services, Map, Account. "Услуги" (the ads
- * screen, renamed) took the slot Partners used to hold — the Partners
- * catalog is now reached from a banner on the Services screen, and the
- * partner self-service menu still lives under Account. Partners/phrases/chat
- * stay registered (home-screen cards and the Services banner still route to
- * them) but hidden from the bar with `href: null`.
+ * Four visible tabs: Home, Wiki, Map, Account. Услуги (ads) came off the bar
+ * too — it's a home-grid tile now, same as Partners already was. Every
+ * screen reachable only from a home-tile / banner (chat, phrases, partners,
+ * ads, photos, videos, events, calendar) stays registered here rather than
+ * as a top-level Stack screen specifically so the bottom tab bar keeps
+ * showing while they're open — a screen outside this Tabs group renders
+ * full-screen with no bar at all, which is exactly the bug this fixes.
  */
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -74,13 +75,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="ads"
-        options={{
-          tabBarLabel: t('tabs.ads'),
-          tabBarIcon: ({ color, size }) => <Ionicons name="pricetags" color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
         name="map"
         options={{
           tabBarLabel: t('tabs.map'),
@@ -99,6 +93,11 @@ export default function TabLayout() {
       <Tabs.Screen name="chat" options={{ title: t('tabs.chat'), href: null }} />
       <Tabs.Screen name="phrases" options={{ title: t('tabs.phrases'), href: null }} />
       <Tabs.Screen name="partners" options={{ title: t('tabs.partners'), href: null }} />
+      <Tabs.Screen name="ads" options={{ title: t('tabs.ads'), href: null }} />
+      <Tabs.Screen name="photos" options={{ title: 'Фото', href: null }} />
+      <Tabs.Screen name="videos" options={{ title: 'Видео', href: null }} />
+      <Tabs.Screen name="events" options={{ title: 'События', href: null }} />
+      <Tabs.Screen name="calendar" options={{ title: 'Календарь', href: null }} />
     </Tabs>
   );
 }

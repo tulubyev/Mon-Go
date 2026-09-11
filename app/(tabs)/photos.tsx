@@ -5,6 +5,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -27,6 +28,7 @@ export default function PhotosScreen() {
   const { isAuthenticated } = useAuth();
   const qc = useQueryClient();
   const { width } = useWindowDimensions();
+  const tabBarHeight = useBottomTabBarHeight();
   const [sort, setSort] = useState<MediaSort>('recent');
   const [viewer, setViewer] = useState<MediaPost | null>(null);
   const [showUpload, setShowUpload] = useState(false);
@@ -45,7 +47,7 @@ export default function PhotosScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>📸 Фото</Text>
         <Pressable style={styles.uploadBtn} onPress={() => requireAuth(() => setShowUpload(true))}>
@@ -85,7 +87,7 @@ export default function PhotosScreen() {
           data={postsQ.data.posts}
           keyExtractor={p => String(p.id)}
           numColumns={2}
-          contentContainerStyle={styles.grid}
+          contentContainerStyle={[styles.grid, { paddingBottom: tabBarHeight + 16 }]}
           columnWrapperStyle={{ gap: GAP }}
           refreshing={postsQ.isRefetching}
           onRefresh={postsQ.refetch}

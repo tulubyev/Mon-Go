@@ -2,10 +2,8 @@ import { StyleSheet, FlatList, Pressable, Text, View, useWindowDimensions } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TOPICS } from '@/constants/topics';
-import { changeLanguage, getCurrentLanguage } from '@/lib/i18n';
 
 const GRID_PADDING = 12;
 const CARD_MARGIN = 5;
@@ -13,21 +11,37 @@ const CARD_MARGIN = 5;
 // Weather/Nature/Emotions, ported from BaikalLove's home screen) + chat/ads
 // = exactly 18 tiles, so 3 columns always fills 6 even rows on every device
 // instead of reflowing by width. Map is no longer a tile here — it moved to
-// the bottom nav bar (see (tabs)/_layout.tsx).
+// the bottom nav bar (see (tabs)/_layout.tsx). Language picking moved to
+// Account — this screen no longer has its own row for it.
 const NUM_COLUMNS = 3;
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
-const LANGUAGES = [
-  { code: 'ru' as const, flag: '🇷🇺' },
-  { code: 'en' as const, flag: '🇬🇧' },
-  { code: 'zh' as const, flag: '🇨🇳' },
-  { code: 'mn' as const, flag: '🇲🇳' },
+// Chat/Ads aren't in constants/topics.ts — they're app sections, not wiki-
+// style topics — so they're added here before laying the grid out.
+const EXTRA_TILES = [
+  { key: 'chat', icon: '💬', route: '/chat' },
+  { key: 'ads', icon: '📋', route: '/ads' },
 ];
+const ALL_TILES = [...TOPICS, ...EXTRA_TILES];
+
+// Explicit placement (not just TOPICS order + append) so specific pairings
+// land on the same row of the 3-column grid: Chat sits with Язык, and
+// Безопасность ("SOS") sits with Услуги on the last row.
+const GRID_ORDER = [
+  'transport', 'accommodation', 'finance',
+  'communication', 'language', 'chat',
+  'planning', 'ulaanbaatar', 'food',
+  'weather', 'nature', 'emotions',
+  'events', 'calendar', 'photos',
+  'videos', 'safety', 'ads',
+];
+const gridData = GRID_ORDER
+  .map(key => ALL_TILES.find(item => item.key === key))
+  .filter((item): item is typeof ALL_TILES[number] => !!item);
 
 export default function HomeScreen() {
   const { t } = useTranslation();
-  const [current, setCurrent] = useState(getCurrentLanguage());
   const { width } = useWindowDimensions();
   const tabBarHeight = useBottomTabBarHeight();
   const cardWidth = width / NUM_COLUMNS - GRID_PADDING - CARD_MARGIN * 2;
@@ -35,32 +49,11 @@ export default function HomeScreen() {
   const iconSize = clamp(cardWidth * 0.26, 28, 56);
   const titleSize = clamp(cardWidth * 0.075, 11, 16);
 
-  const gridData = [
-    ...TOPICS,
-    { key: 'chat', icon: '💬', title: t('tabs.chat'), route: '/chat' },
-    { key: 'ads', icon: '📋', title: t('tabs.ads'), route: '/ads' },
-  ];
-
-  const handleLanguage = async (code: 'ru' | 'en' | 'zh' | 'mn') => {
-    await changeLanguage(code);
-    setCurrent(code);
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.langRow}>
-          {LANGUAGES.map(lang => (
-            <Pressable
-              key={lang.code}
-              style={[styles.langBtn, current === lang.code && styles.langBtnActive]}
-              onPress={() => handleLanguage(lang.code)}
-            >
-              <Text style={styles.langFlag}>{lang.flag}</Text>
-            </Pressable>
-          ))}
-        </View>
-        <Text style={styles.headerSub}>Travel Mongolia</Text>
+        <Text style={styles.headerTitle}>{t('home.title')}</Text>
+        <Text style={styles.headerSub}>{t('home.subtitle')}</Text>
       </View>
       <FlatList
         data={gridData}
@@ -85,7 +78,7 @@ export default function HomeScreen() {
           >
             <Text style={[styles.cardIcon, { fontSize: iconSize }]}>{item.icon}</Text>
             <Text style={[styles.cardTitle, { fontSize: titleSize }]} numberOfLines={2}>
-              {'route' in item ? item.title : t(`topicTitles.${item.key}`)}
+              {'route' in item ? t(`tabs.${item.key}`) : t(`topicTitles.${item.key}`)}
             </Text>
           </Pressable>
         )}
@@ -97,11 +90,8 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: { alignItems: 'center', paddingVertical: 16, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  headerTitle: { fontSize: 20, fontWeight: '800', color: '#1E293B' },
   headerSub: { fontSize: 13, color: '#888', marginTop: 2 },
-  langRow: { flexDirection: 'row', justifyContent: 'center', gap: 4 },
-  langBtn: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  langBtnActive: { backgroundColor: '#e0eeff' },
-  langFlag: { fontSize: 18 },
   grid: { padding: 12, gap: 10 },
   card: {
     flex: 1,

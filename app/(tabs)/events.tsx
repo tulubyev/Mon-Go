@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -28,6 +29,7 @@ const CATEGORIES = [
 export default function EventsScreen() {
   const { isAuthenticated } = useAuth();
   const qc = useQueryClient();
+  const tabBarHeight = useBottomTabBarHeight();
   const [category, setCategory] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
 
@@ -50,7 +52,7 @@ export default function EventsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🎉 События</Text>
         <View style={styles.headerBtns}>
@@ -87,7 +89,7 @@ export default function EventsScreen() {
         <FlatList
           data={eventsQ.data.events}
           keyExtractor={e => String(e.id)}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: tabBarHeight + 16 }]}
           refreshing={eventsQ.isRefetching}
           onRefresh={eventsQ.refetch}
           renderItem={({ item }) => <EventCard event={item} onAttend={attend} />}

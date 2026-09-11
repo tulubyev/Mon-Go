@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { api, type EventItem } from '@/services/api';
@@ -25,6 +26,7 @@ function buildMonthGrid(year: number, month: number) {
 
 export default function CalendarScreen() {
   const now = new Date();
+  const tabBarHeight = useBottomTabBarHeight();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1); // 1-indexed
   const [selectedDay, setSelectedDay] = useState<number | null>(now.getDate());
@@ -56,7 +58,7 @@ export default function CalendarScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <Pressable onPress={() => changeMonth(-1)} hitSlop={10}><Ionicons name="chevron-back" size={22} color={BRAND} /></Pressable>
         <Text style={styles.headerTitle}>{MONTH_NAMES[month - 1]} {year}</Text>
@@ -94,7 +96,7 @@ export default function CalendarScreen() {
         </View>
       )}
 
-      <ScrollView style={styles.dayList} contentContainerStyle={{ padding: 16, gap: 10 }}>
+      <ScrollView style={styles.dayList} contentContainerStyle={{ padding: 16, paddingBottom: tabBarHeight + 16, gap: 10 }}>
         {selectedDay == null ? (
           <Text style={styles.hint}>Выберите день, чтобы увидеть события</Text>
         ) : !dayEvents.length ? (
