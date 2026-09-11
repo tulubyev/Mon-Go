@@ -6,9 +6,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { File } from 'expo-file-system';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { api, type MediaPost, type MediaSort } from '@/services/api';
+
+// 40MB raw file — comfortably under the server's 60MB base64 request cap
+// (base64 inflates size ~33%) and enough for a short clip. Longer video
+// should go through the link field instead (no upload, no S3 needed).
+const MAX_VIDEO_BYTES = 40 * 1024 * 1024;
 
 const BRAND = '#015197';
 
@@ -129,15 +136,43 @@ function UploadModal({ onClose, onDone }: { onClose: () => void; onDone: () => v
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
+  const [mode, setMode] = useState<'link' | 'file'>('link');
+  const [pickedUri, setPickedUri] = useState<string | null>(null);
+  const [pickedName, setPickedName] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = title.trim().length >= 2 && /^https?:\/\//.test(url.trim());
+  const canSubmit = title.trim().length >= 2 && (mode === 'link' ? /^https?:\/\//.test(url.trim()) : !!pickedUri);
+
+  const pickFile = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') { Alert.alert('Нет доступа', 'Разрешите доступ к галерее'); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Videos });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    if (asset.fileSize && asset.fileSize > MAX_VIDEO_BYTES) {
+      Alert.alert('Слишком большой файл', `Максимум ${MAX_VIDEO_BYTES / 1024 / 1024} МБ — для длинных роликов используйте ссылку.`);
+      return;
+    }
+    setPickedUri(asset.uri);
+    setPickedName(asset.fileName || asset.uri.split('/').pop() || 'video.mp4');
+  };
 
   const submit = async () => {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
     try {
-      await api.createMedia({ type: 'video', title: title.trim(), description: description.trim() || undefined, mediaUrl: url.trim() });
+      if (mode === 'link') {
+        await api.createMedia({ type: 'video', title: title.trim(), description: description.trim() || undefined, mediaUrl: url.trim() });
+      } else if (pickedUri) {
+        const base64 = await new File(pickedUri).base64();
+        const ext = (pickedName || '').toLowerCase().endsWith('.mov') ? 'quicktime' : 'mp4';
+        await api.createMedia({
+          type: 'video',
+          title: title.trim(),
+          description: description.trim() || undefined,
+          mediaData: `data:video/${ext};base64,${base64}`,
+        });
+      }
       onDone();
     } catch (e: any) {
       Alert.alert('Ошибка', e.message || 'Не удалось опубликовать');
@@ -155,16 +190,34 @@ function UploadModal({ onClose, onDone }: { onClose: () => void; onDone: () => v
             <Pressable hitSlop={10} onPress={onClose}><Ionicons name="close" size={22} color="#94A3B8" /></Pressable>
           </View>
 
+          <View style={styles.modeRow}>
+            <Pressable style={[styles.modeBtn, mode === 'link' && styles.modeBtnActive]} onPress={() => setMode('link')}>
+              <Text style={[styles.modeBtnText, mode === 'link' && styles.modeBtnTextActive]}>Ссылка</Text>
+            </Pressable>
+            <Pressable style={[styles.modeBtn, mode === 'file' && styles.modeBtnActive]} onPress={() => setMode('file')}>
+              <Text style={[styles.modeBtnText, mode === 'file' && styles.modeBtnTextActive]}>Файл</Text>
+            </Pressable>
+          </View>
+
           <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Название" placeholderTextColor="#94A3B8" maxLength={80} />
-          <TextInput
-            style={styles.input}
-            value={url}
-            onChangeText={setUrl}
-            placeholder="Ссылка на видео (YouTube, VK, Rutube…)"
-            placeholderTextColor="#94A3B8"
-            autoCapitalize="none"
-            keyboardType="url"
-          />
+
+          {mode === 'link' ? (
+            <TextInput
+              style={styles.input}
+              value={url}
+              onChangeText={setUrl}
+              placeholder="Ссылка на видео (YouTube, VK, Rutube…)"
+              placeholderTextColor="#94A3B8"
+              autoCapitalize="none"
+              keyboardType="url"
+            />
+          ) : (
+            <Pressable style={styles.pickBox} onPress={pickFile}>
+              <Ionicons name={pickedUri ? 'checkmark-circle' : 'videocam-outline'} size={28} color={pickedUri ? '#10B981' : '#94A3B8'} />
+              <Text style={styles.pickBoxText} numberOfLines={1}>{pickedName || 'Выбрать видео из галереи'}</Text>
+            </Pressable>
+          )}
+
           <TextInput
             style={[styles.input, styles.inputMultiline]}
             value={description}
@@ -218,6 +271,13 @@ const styles = StyleSheet.create({
   modalCard: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 34 },
   modalHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   modalTitle: { fontSize: 17, fontWeight: '800', color: '#1E293B' },
+  modeRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  modeBtn: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 10, backgroundColor: '#F1F5F9' },
+  modeBtnActive: { backgroundColor: BRAND },
+  modeBtnText: { fontSize: 13, fontWeight: '700', color: '#475569' },
+  modeBtnTextActive: { color: '#fff' },
+  pickBox: { height: 64, borderRadius: 10, borderWidth: 1.5, borderColor: '#E2E8F0', borderStyle: 'dashed', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10, paddingHorizontal: 12, backgroundColor: '#F8FAFC' },
+  pickBoxText: { fontSize: 13, color: '#475569', flexShrink: 1 },
   input: { backgroundColor: '#F8FAFC', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#1E293B', marginBottom: 10 },
   inputMultiline: { minHeight: 70, textAlignVertical: 'top' },
   submitBtn: { backgroundColor: BRAND, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
