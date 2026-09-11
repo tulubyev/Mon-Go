@@ -69,7 +69,8 @@
       "expo-audio",
       "expo-localization",
       "expo-secure-store",
-      "expo-asset"
+      "expo-asset",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true

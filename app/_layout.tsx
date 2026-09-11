@@ -110,6 +110,10 @@ function RootLayoutNav() {
           <Stack.Screen name="partner-profile" options={{ title: t('partner.editProfile'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="my-orders" options={{ title: t('orders.mine'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="notifications" options={{ title: t('notifications.title'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="photos" options={{ headerShown: false }} />
+          <Stack.Screen name="videos" options={{ headerShown: false }} />
+          <Stack.Screen name="events" options={{ headerShown: false }} />
+          <Stack.Screen name="calendar" options={{ headerShown: false }} />
           <Stack.Screen name="welcome" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
         </Stack>
       </AuthProvider>

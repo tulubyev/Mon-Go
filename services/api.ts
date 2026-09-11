@@ -331,6 +331,51 @@ export const api = {
     request<{ ok: boolean }>(`/api/notifications/${id}/read`, { method: 'PATCH' }),
   markAllNotificationsRead: () =>
     request<{ ok: boolean }>('/api/notifications/read-all', { method: 'POST' }),
+
+  // ── Community media (Photos/Videos) ───────────────────────────────────────
+  getMedia: (type?: MediaType, sort: MediaSort = 'recent', page = 1) =>
+    request<MediaListResponse>(
+      `/api/media?sort=${sort}&page=${page}${type ? `&type=${type}` : ''}`
+    ),
+  getMediaAwards: (type: MediaType = 'photo') =>
+    request<{ awards: MediaAward[] }>(`/api/media/awards?type=${type}`),
+  createMedia: (data: CreateMediaInput) =>
+    request<{ post: MediaPost }>('/api/media', { method: 'POST', body: JSON.stringify(data) }),
+  likeMedia: (id: number) =>
+    request<{ liked: boolean }>(`/api/media/${id}/like`, { method: 'POST' }),
+  rateMedia: (id: number, rating: number) =>
+    request<{ avgRating: number | null; ratingCount: number }>(`/api/media/${id}/rate`, {
+      method: 'POST', body: JSON.stringify({ rating }),
+    }),
+  deleteMedia: (id: number, reason: string) =>
+    request<{ success: boolean }>(`/api/media/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) }),
+
+  // ── Events + Calendar ──────────────────────────────────────────────────────
+  getEvents: (params: { category?: string; from?: string; to?: string; q?: string; limit?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.category) qs.set('category', params.category);
+    if (params.from) qs.set('from', params.from);
+    if (params.to) qs.set('to', params.to);
+    if (params.q) qs.set('q', params.q);
+    if (params.limit) qs.set('limit', String(params.limit));
+    return request<{ events: EventItem[] }>(`/api/events?${qs.toString()}`);
+  },
+  getEventCalendar: (year: number, month: number) =>
+    request<{ events: EventItem[] }>(`/api/events/calendar?year=${year}&month=${month}`),
+  getEvent: (id: number) => request<{ event: EventItem }>(`/api/events/${id}`),
+  createEvent: (data: CreateEventInput) =>
+    request<{ event: EventItem }>('/api/events', { method: 'POST', body: JSON.stringify(data) }),
+  attendEvent: (id: number, status: AttendStatus) =>
+    request<{ status: AttendStatus; attendeeCount: number }>(`/api/events/${id}/attend`, {
+      method: 'POST', body: JSON.stringify({ status }),
+    }),
+  getEventReviews: (id: number) =>
+    request<{ reviews: EventReview[]; reviewCount: number; avgRating: number | null }>(`/api/events/${id}/reviews`),
+  addEventReview: (id: number, rating: number, reviewText?: string) =>
+    request<{ review: EventReview }>(`/api/events/${id}/reviews`, {
+      method: 'POST', body: JSON.stringify({ rating, reviewText }),
+    }),
+  deleteEvent: (id: number) => request<{ ok: boolean }>(`/api/events/${id}`, { method: 'DELETE' }),
 };
 
 export type PartnerStatus = 'pending' | 'approved' | 'rejected';
@@ -414,6 +459,102 @@ export interface AppNotification {
   order_id: number | null;
   read: boolean;
   created_at: string;
+}
+
+export type MediaType = 'photo' | 'video';
+export type MediaSort = 'recent' | 'popular' | 'top';
+
+export interface MediaPost {
+  id: number;
+  user_id: number;
+  type: MediaType;
+  title: string;
+  description: string | null;
+  media_data: string | null;   // photo — base64 data URI
+  media_url: string | null;    // video — external link (YouTube/VK/Rutube)
+  thumbnail_data: string | null;
+  created_at: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  like_count: number;
+  avg_rating: number | null;
+  rating_count: number;
+  user_liked?: number;
+  user_rating?: number | null;
+}
+
+export interface MediaListResponse {
+  posts: MediaPost[];
+  page: number;
+  hasMore: boolean;
+}
+
+export interface MediaAward {
+  id: number;
+  post_id: number;
+  place: number | null;
+  period_type: string | null;
+  period_value: string | null;
+  award_title: string | null;
+  prize_description: string | null;
+  created_at: string;
+  title: string;
+  post_type: MediaType;
+  media_data: string | null;
+  media_url: string | null;
+  thumbnail_data: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
+export interface CreateMediaInput {
+  type: MediaType;
+  title: string;
+  description?: string;
+  mediaData?: string;   // photo
+  mediaUrl?: string;    // video
+  thumbnailData?: string;
+}
+
+export type AttendStatus = 'interested' | 'going' | 'not_going';
+
+export interface EventItem {
+  id: number;
+  title: string;
+  description: string | null;
+  category: string;
+  emoji: string;
+  start_date: string;
+  end_date: string | null;
+  location: string | null;
+  external_url: string | null;
+  is_featured: boolean;
+  created_by: number | null;
+  attendee_count: number;
+}
+
+export interface EventReview {
+  id: number;
+  event_id: number;
+  user_id: number;
+  rating: number;
+  review_text: string | null;
+  created_at: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
+export interface CreateEventInput {
+  title: string;
+  description?: string;
+  category?: string;
+  start_date: string;   // ISO
+  end_date?: string;
+  location?: string;
+  externalUrl?: string;
 }
 
 export interface SubscriptionPlan {

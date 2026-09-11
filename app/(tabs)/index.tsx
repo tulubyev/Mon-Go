@@ -71,8 +71,15 @@ export default function HomeScreen() {
           <Pressable
             style={({ pressed }) => [styles.card, { minHeight: cardMinHeight }, pressed && styles.cardPressed]}
             onPress={() => {
+              // Photos/Videos/Events/Calendar got real dedicated screens
+              // (ported from BaikalLove) instead of the generic /topic
+              // template the other topic tiles still use.
+              const DEDICATED_ROUTES: Record<string, string> = {
+                photos: '/photos', videos: '/videos', events: '/events', calendar: '/calendar',
+              };
               if ('route' in item) router.push(item.route as any);
               else if (item.key === 'transport') router.push('/transport' as any);
+              else if (DEDICATED_ROUTES[item.key]) router.push(DEDICATED_ROUTES[item.key] as any);
               else router.push(`/topic/${item.key}`);
             }}
           >
