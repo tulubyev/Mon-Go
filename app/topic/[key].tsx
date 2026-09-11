@@ -9,10 +9,10 @@ import { readingContainerStyle } from '@/constants/Layout';
 // that needs one entry point that isn't just "ask this canned question in
 // chat" (transport's own schedules screen) or is the chat itself, opened
 // with no preset question — Chat no longer has its own home-grid tile, this
-// is how the Язык topic reaches it now, relabeled "Спросить".
+// is how the Язык topic reaches it now, relabeled "Переводчик".
 const SPECIAL_LINKS: Record<string, { route: string; label: string }> = {
   transport: { route: '/transport', label: '📅 Расписания транспорта' },
-  language: { route: '/chat', label: '💬 Спросить' },
+  language: { route: '/chat', label: '💬 Переводчик' },
 };
 
 export default function TopicScreen() {

@@ -261,7 +261,6 @@ function ProfileScreen() {
 }
 
 function LanguageSection() {
-  const { t } = useTranslation();
   const [current, setCurrent] = useState(getCurrentLanguage());
 
   const handleLanguage = async (code: 'ru' | 'en' | 'zh' | 'mn') => {
@@ -271,7 +270,6 @@ function LanguageSection() {
 
   return (
     <View style={styles.menuSection}>
-      <Text style={styles.menuSectionTitle}>{t('settings.language')}</Text>
       <View style={styles.langIconRow}>
         {LANGUAGES.map(lang => (
           <Pressable
@@ -337,7 +335,7 @@ const styles = StyleSheet.create({
   menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   menuIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   menuItemText: { fontSize: 14, color: '#1E293B', fontWeight: '500' },
-  langIconRow: { flexDirection: 'row', gap: 10, paddingVertical: 10 },
+  langIconRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, paddingVertical: 10 },
   langIconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1F5F9' },
   langIconBtnActive: { backgroundColor: '#E0EEFF' },
   langIconFlag: { fontSize: 20 },
