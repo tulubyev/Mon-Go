@@ -69,8 +69,16 @@ export function MapLayersControl({
         <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={13} color="#015197" />
       </Pressable>
 
+      {/* Backdrop to close on an outside tap. Can't use StyleSheet.absoluteFill
+          here — it fills the nearest positioned ancestor's own box, and that
+          ancestor is this control's wrapper `View`, which is only as big as
+          the pill itself (no explicit width/height), not the screen. A
+          fixed, generously oversized box positioned well past any real
+          device's edges covers the whole screen regardless of where the
+          pill sits, without needing a Modal + on-screen position measurement
+          just to anchor the dropdown. */}
       {open && (
-        <Pressable style={StyleSheet.absoluteFill} onPress={closeDropdown} />
+        <Pressable style={styles.backdrop} onPress={closeDropdown} />
       )}
 
       {open && (
@@ -118,6 +126,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5,
   },
   pillText: { fontSize: 13, fontWeight: '700', color: '#015197' },
+  backdrop: { position: 'absolute', top: -2000, left: -2000, width: 6000, height: 6000, zIndex: 5 },
   badge: { backgroundColor: '#015197', borderRadius: 10, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   badgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
 

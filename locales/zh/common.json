@@ -74,7 +74,7 @@
     "twoGis": "2GIS",
     "offlineDownload": "下载离线地图",
     "offlineDownloading": "正在下载地图",
-    "offlineReady": "离线地图已就绪",
+    "offlineReady": "离线地图",
     "offlineError": "出错 — 重试",
     "offlineRemoveTitle": "删除离线地图？",
     "offlineRemoveMsg": "蒙古地图将从设备中删除。在线地图仍可正常使用。",

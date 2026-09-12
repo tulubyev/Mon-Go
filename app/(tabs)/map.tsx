@@ -1,4 +1,5 @@
 import { Platform, StyleSheet, Text, View, Pressable, ScrollView, Linking, ActivityIndicator, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -77,6 +78,7 @@ function MapNativeScreen() {
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState(false);
   const [locatingUser, setLocatingUser] = useState(false);
+  const [zoom, setZoom] = useState(5); // kept in sync via Map's onRegionDidChange, incl. pinch gestures
 
   useEffect(() => {
     let cancelled = false;
@@ -174,6 +176,29 @@ function MapNativeScreen() {
       .finally(() => setRouteLoading(false));
   }, [routePoints]);
 
+  const ZOOM_MIN = 2;
+  const ZOOM_MAX = 18;
+  const zoomIn = () => cameraRef.current?.zoomTo?.(Math.min(ZOOM_MAX, zoom + 1), { duration: 200 });
+  const zoomOut = () => cameraRef.current?.zoomTo?.(Math.max(ZOOM_MIN, zoom - 1), { duration: 200 });
+
+  // "Locate me" FAB — a fresh fix each tap rather than reusing userCoords,
+  // same reasoning as toggleRoutingMode: whatever's cached from map-load
+  // time could be stale by the time someone actually taps this.
+  const locateMe = async () => {
+    if (!userLocationVisible) return;
+    setLocatingUser(true);
+    try {
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const coords: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+      setUserCoords(coords);
+      cameraRef.current?.flyTo?.({ center: coords, zoom: Math.max(zoom, 12), duration: 600 });
+    } catch {
+      // No fix available — nothing to do, the button just stays a no-op.
+    } finally {
+      setLocatingUser(false);
+    }
+  };
+
   const resetRoute = () => {
     setRoutePoints([]);
     setRoute(null);
@@ -229,7 +254,15 @@ function MapNativeScreen() {
   return (
     <View style={styles.container}>
       {/* Map — v11: Map + mapStyle prop, Camera initialViewState, Marker lngLat */}
-      <Map style={styles.map} mapStyle={mapStyle} onPress={handleMapPress}>
+      <Map
+        style={styles.map}
+        mapStyle={mapStyle}
+        onPress={handleMapPress}
+        onRegionDidChange={(e: any) => {
+          const z = e?.nativeEvent?.zoom;
+          if (typeof z === 'number') setZoom(z);
+        }}
+      >
         <Camera
           ref={cameraRef}
           initialViewState={{ center: [103.8467, 46.8625], zoom: 5 }}
@@ -349,6 +382,28 @@ function MapNativeScreen() {
       {/* Offline map pack — Mongolia has no signal outside the cities. Same
           row as the filters pill (top-left), pinned to the right edge. */}
       <OfflineMapControl pack={offlinePack} isOnline={isOnline} topOffset={insets.top + 8} />
+
+      {/* Zoom +/- */}
+      <View style={[styles.zoomControl, { bottom: tabBarHeight + 202 }]}>
+        <Pressable style={styles.zoomBtn} onPress={zoomIn} hitSlop={4}>
+          <Text style={styles.zoomBtnText}>+</Text>
+        </Pressable>
+        <View style={styles.zoomDivider} />
+        <Pressable style={styles.zoomBtn} onPress={zoomOut} hitSlop={4}>
+          <Text style={styles.zoomBtnText}>−</Text>
+        </Pressable>
+      </View>
+
+      {/* Centre the map on the device's own position */}
+      {userLocationVisible && (
+        <Pressable style={[styles.locateFab, { bottom: tabBarHeight + 140 }]} onPress={locateMe}>
+          {locatingUser ? (
+            <ActivityIndicator size="small" color="#015197" />
+          ) : (
+            <Ionicons name="locate" size={22} color="#015197" />
+          )}
+        </Pressable>
+      )}
 
       {/* Routing FAB + hints — needs connectivity, unlike the map/POI browsing above */}
       <Pressable
@@ -585,7 +640,7 @@ const styles = StyleSheet.create({
   marker: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   markerIcon: { fontSize: 24 },
   countBadge: { position: 'absolute', top: 60, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
-  offlineBadge: { position: 'absolute', right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  offlineBadge: { position: 'absolute', right: 12, backgroundColor: 'rgba(100,116,139,0.85)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   routeFab: {
     position: 'absolute', right: 12, width: 52, height: 52, borderRadius: 26,
     backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',
@@ -593,6 +648,19 @@ const styles = StyleSheet.create({
   },
   routeFabActive: { backgroundColor: '#015197' },
   routeFabIcon: { fontSize: 24 },
+  locateFab: {
+    position: 'absolute', right: 12, width: 52, height: 52, borderRadius: 26,
+    backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 6,
+  },
+  zoomControl: {
+    position: 'absolute', right: 12, width: 44, borderRadius: 12, overflow: 'hidden',
+    backgroundColor: '#fff',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 6,
+  },
+  zoomBtn: { height: 44, alignItems: 'center', justifyContent: 'center' },
+  zoomBtnText: { fontSize: 22, fontWeight: '600', color: '#015197', lineHeight: 24 },
+  zoomDivider: { height: 1, backgroundColor: '#E2E8F0' },
   routeHint: {
     position: 'absolute', left: 12, right: 76, backgroundColor: 'rgba(1,81,151,0.92)',
     borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,

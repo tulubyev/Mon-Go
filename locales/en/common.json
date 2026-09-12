@@ -74,7 +74,7 @@
     "twoGis": "2GIS",
     "offlineDownload": "Download offline map",
     "offlineDownloading": "Downloading map",
-    "offlineReady": "Offline map ready",
+    "offlineReady": "Offline map",
     "offlineError": "Error — retry",
     "offlineRemoveTitle": "Delete offline map?",
     "offlineRemoveMsg": "The Mongolia map will be removed from this device. The online map will keep working.",
