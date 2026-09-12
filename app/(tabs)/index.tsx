@@ -7,14 +7,23 @@ import { TOPICS } from '@/constants/topics';
 
 const GRID_PADDING = 12;
 const CARD_MARGIN = 5;
-// Fixed-width 3-column grid — 16 topics (9 original + Photo/Video/Events/
-// Calendar/Weather/Nature/Emotions, ported from BaikalLove's home screen) +
-// Ads = 17 tiles, so the last row runs 2 wide instead of reflowing by
-// device width. Map is no longer a tile here — it moved to the bottom nav
-// bar (see (tabs)/_layout.tsx). Language picking moved to Account — this
-// screen no longer has its own row for it. Chat isn't a tile either — it's
-// reached as "Спросить" from inside the Язык topic (app/topic/[key].tsx).
-const NUM_COLUMNS = 3;
+const HEADER_ESTIMATE = 76;
+// 17 tiles total (9 original topics + Photo/Video/Events/Calendar/Weather/
+// Nature/Emotions ported from BaikalLove's home screen + Ads). Map is no
+// longer a tile here — it moved to the bottom nav bar (see
+// (tabs)/_layout.tsx). Language picking moved to Account — this screen no
+// longer has its own row for it. Chat isn't a tile either — it's reached as
+// "Спросить" from inside the Язык topic (app/topic/[key].tsx).
+//
+// Column count scales with width — on a phone, 3 fixed columns with 6 rows
+// was fine, but the same 3 columns on an iPad stretched each row so tall
+// that 17 tiles needed scrolling. More columns on wider screens keeps every
+// tile on screen at once instead.
+function columnsForWidth(width: number) {
+  if (width >= 900) return 6;
+  if (width >= 600) return 5;
+  return 3;
+}
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
@@ -44,12 +53,25 @@ const gridData = GRID_ORDER
 
 export default function HomeScreen() {
   const { t } = useTranslation();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const tabBarHeight = useBottomTabBarHeight();
-  const cardWidth = width / NUM_COLUMNS - GRID_PADDING - CARD_MARGIN * 2;
-  const cardMinHeight = clamp(cardWidth * 0.85, 100, 170);
-  const iconSize = clamp(cardWidth * 0.26, 28, 56);
-  const titleSize = clamp(cardWidth * 0.075, 11, 16);
+  const numColumns = columnsForWidth(width);
+  const isWide = numColumns > 3;
+  const cardWidth = width / numColumns - GRID_PADDING - CARD_MARGIN * 2;
+
+  // Phones keep the original width-derived sizing (already tuned). On wider
+  // screens, size rows to the actual available height instead — that's what
+  // "fits without scrolling" means, not just a wider column.
+  let cardMinHeight: number;
+  if (isWide) {
+    const rows = Math.ceil(gridData.length / numColumns);
+    const availableHeight = height - HEADER_ESTIMATE - tabBarHeight - GRID_PADDING * 2 - (rows - 1) * 10;
+    cardMinHeight = clamp(availableHeight / rows - CARD_MARGIN * 2, 80, 170);
+  } else {
+    cardMinHeight = clamp(cardWidth * 0.85, 100, 170);
+  }
+  const iconSize = clamp(cardWidth * 0.26, 24, 56);
+  const titleSize = clamp(cardWidth * 0.075, 10, 16);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -58,9 +80,12 @@ export default function HomeScreen() {
         <Text style={styles.headerSub}>{t('home.subtitle')}</Text>
       </View>
       <FlatList
+        // numColumns can't change on a mounted FlatList — keying by it forces
+        // a remount when a rotation/resize crosses a breakpoint.
+        key={numColumns}
         data={gridData}
         keyExtractor={(item) => item.key}
-        numColumns={NUM_COLUMNS}
+        numColumns={numColumns}
         contentContainerStyle={[styles.grid, { paddingBottom: tabBarHeight + 12 }]}
         renderItem={({ item }) => (
           <Pressable
