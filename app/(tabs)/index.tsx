@@ -1,4 +1,4 @@
-import { StyleSheet, FlatList, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, FlatList, Pressable, Text, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from 'expo-router';
@@ -7,7 +7,6 @@ import { TOPICS } from '@/constants/topics';
 
 const GRID_PADDING = 12;
 const CARD_MARGIN = 5;
-const HEADER_ESTIMATE = 76;
 // 17 tiles total (9 original topics + Photo/Video/Events/Calendar/Weather/
 // Nature/Emotions ported from BaikalLove's home screen + Ads). Map is no
 // longer a tile here — it moved to the bottom nav bar (see
@@ -65,7 +64,7 @@ export default function HomeScreen() {
   let cardMinHeight: number;
   if (isWide) {
     const rows = Math.ceil(gridData.length / numColumns);
-    const availableHeight = height - HEADER_ESTIMATE - tabBarHeight - GRID_PADDING * 2 - (rows - 1) * 10;
+    const availableHeight = height - tabBarHeight - GRID_PADDING * 2 - (rows - 1) * 10;
     cardMinHeight = clamp(availableHeight / rows - CARD_MARGIN * 2, 80, 170);
   } else {
     cardMinHeight = clamp(cardWidth * 0.85, 100, 170);
@@ -75,10 +74,6 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('home.title')}</Text>
-        <Text style={styles.headerSub}>{t('home.subtitle')}</Text>
-      </View>
       <FlatList
         // numColumns can't change on a mounted FlatList — keying by it forces
         // a remount when a rotation/resize crosses a breakpoint.
@@ -116,9 +111,6 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: { alignItems: 'center', paddingVertical: 16, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#1E293B' },
-  headerSub: { fontSize: 13, color: '#888', marginTop: 2 },
   grid: { padding: 12, gap: 10 },
   card: {
     flex: 1,
