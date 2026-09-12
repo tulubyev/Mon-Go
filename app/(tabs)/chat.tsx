@@ -98,7 +98,11 @@ export default function ChatScreen() {
           renderItem={({ item }) => (
             <View style={styles.messageGroup}>
               <View style={[styles.bubble, item.role === 'user' ? styles.userBubble : styles.botBubble]}>
-                <Text style={[styles.bubbleText, item.role === 'user' && styles.userText]}>
+                <Text
+                  style={[styles.bubbleText, item.role === 'user' && styles.userText]}
+                  selectable
+                  dataDetectorType="phoneNumber"
+                >
                   {item.text}
                 </Text>
               </View>

@@ -31,7 +31,7 @@ export default function TopicScreen() {
       <Stack.Screen options={{ title: `${topic.icon} ${t(`topicTitles.${topic.key}`)}` }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.overview}>
-          <Text style={styles.overviewText}>{topic.overview}</Text>
+          <Text style={styles.overviewText} selectable dataDetectorType="phoneNumber">{topic.overview}</Text>
         </View>
         <Text style={styles.subheading}>Вопросы</Text>
         {SPECIAL_LINKS[key] && (

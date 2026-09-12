@@ -26,13 +26,13 @@ function renderBody(body: string) {
     const inline = trimmed.match(/^\*(.+?)\*\s*(.*)$/s);
     if (inline) {
       return (
-        <Text key={i} style={styles.paragraph}>
+        <Text key={i} style={styles.paragraph} selectable dataDetectorType="phoneNumber">
           <Text style={styles.inlineEmphasis}>{inline[1]}</Text>
           {inline[2] ? ` ${inline[2]}` : ''}
         </Text>
       );
     }
-    return <Text key={i} style={styles.paragraph}>{trimmed}</Text>;
+    return <Text key={i} style={styles.paragraph} selectable dataDetectorType="phoneNumber">{trimmed}</Text>;
   });
 }
 
