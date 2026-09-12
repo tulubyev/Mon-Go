@@ -324,7 +324,7 @@ function MapNativeScreen() {
             filter={['!', ['has', 'point_count']]}
             style={{
               iconImage: ['get', 'icon'],
-              iconSize: 0.52,
+              iconSize: 0.4,
               // Clustering already thins density down to individual pins by
               // clusterMaxZoom — without these, MapLibre's collision engine
               // silently drops any icon that overlaps a neighbour, which at
