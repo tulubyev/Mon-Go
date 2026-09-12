@@ -60,6 +60,7 @@ function MapNativeScreen() {
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set(POI_CATEGORIES.map(c => c.key)));
   const [selected, setSelected] = useState<POI | null>(null);
   const [userLocationVisible, setUserLocationVisible] = useState(false);
+  const [userCoords, setUserCoords] = useState<[number, number] | null>(null); // [lng,lat]
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const isOnline = useNetworkStatus();
@@ -75,12 +76,21 @@ function MapNativeScreen() {
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState(false);
+  const [locatingUser, setLocatingUser] = useState(false);
 
   useEffect(() => {
     api.getPOI('all').then(setPois).catch(() => {}).finally(() => setLoading(false));
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') setUserLocationVisible(true);
+      if (status !== 'granted') return;
+      setUserLocationVisible(true);
+      // One fix on load, just to power the "N km away" line in InfoCard —
+      // routing gets its own fresh fetch when actually started (see
+      // toggleRoutingMode), since a stale cached fix there could point a
+      // route from the wrong place.
+      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+        .then((pos: any) => setUserCoords([pos.coords.longitude, pos.coords.latitude]))
+        .catch(() => {});
     })();
   }, []);
 
@@ -143,9 +153,28 @@ function MapNativeScreen() {
     setRoute(null);
     setRouteError(false);
   };
-  const toggleRoutingMode = () => {
-    if (routingMode) resetRoute();
-    setRoutingMode(!routingMode);
+  // Turning routing on seeds the start point from GPS so only the
+  // destination needs a tap — falls back to the old two-tap flow (both
+  // points picked on the map) if location permission was denied or the fix
+  // fails, which is common in the steppe.
+  const toggleRoutingMode = async () => {
+    if (routingMode) {
+      resetRoute();
+      setRoutingMode(false);
+      return;
+    }
+    setRoutingMode(true);
+    if (userLocationVisible) {
+      setLocatingUser(true);
+      try {
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        setRoutePoints([[pos.coords.longitude, pos.coords.latitude]]);
+      } catch {
+        // No fix — stay in manual two-tap mode.
+      } finally {
+        setLocatingUser(false);
+      }
+    }
   };
   // v11 fires onPress with a NativeSyntheticEvent — the coordinate is at
   // e.nativeEvent.lngLat ([lng, lat]), not e.lngLat. Reading the wrong path
@@ -303,7 +332,14 @@ function MapNativeScreen() {
         <Text style={styles.routeFabIcon}>🧭</Text>
       </Pressable>
 
-      {routingMode && routePoints.length < 2 && (
+      {routingMode && locatingUser && (
+        <View style={[styles.routeHint, styles.routeHintRow, { bottom: tabBarHeight + 76 }]}>
+          <ActivityIndicator size="small" color="#fff" />
+          <Text style={styles.routeHintText}>{t('map.locatingUser')}</Text>
+        </View>
+      )}
+
+      {routingMode && !locatingUser && routePoints.length < 2 && (
         <View style={[styles.routeHint, { bottom: tabBarHeight + 76 }]}>
           <Text style={styles.routeHintText}>
             {routePoints.length === 0 ? t('map.routeTapFrom') : t('map.routeTapTo')}
@@ -329,7 +365,9 @@ function MapNativeScreen() {
       )}
 
       {/* InfoCard */}
-      {selected && <InfoCard poi={selected} onClose={() => setSelected(null)} bottomOffset={tabBarHeight} />}
+      {selected && (
+        <InfoCard poi={selected} onClose={() => setSelected(null)} bottomOffset={tabBarHeight} userCoords={userCoords} />
+      )}
     </View>
   );
 }
@@ -384,10 +422,25 @@ function OfflineMapControl({
   );
 }
 
+// Haversine — great-circle distance in km. Fine at this scale (POI-to-user
+// distances of a few hundred metres to a few hundred km); no need for an
+// ellipsoidal model here.
+function distanceKm(a: [number, number], lat2: number, lng2: number) {
+  const [lng1, lat1] = a;
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const h = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
 // ─── InfoCard ─────────────────────────────────────────────────────────────────
-function InfoCard({ poi, onClose, bottomOffset }: { poi: POI; onClose: () => void; bottomOffset: number }) {
+function InfoCard({ poi, onClose, bottomOffset, userCoords }: { poi: POI; onClose: () => void; bottomOffset: number; userCoords: [number, number] | null }) {
   const { t } = useTranslation();
   const catLabel = t(`map.categories.${poi.category}`, { defaultValue: poi.category });
+  const distance = userCoords ? distanceKm(userCoords, poi.lat, poi.lng) : null;
+  const distanceText = distance == null ? null : distance < 1 ? `${Math.round(distance * 1000)} м` : `${distance.toFixed(1)} км`;
 
   const openDirections = () => {
     const lat = poi.lat, lng = poi.lng;
@@ -420,6 +473,7 @@ function InfoCard({ poi, onClose, bottomOffset }: { poi: POI; onClose: () => voi
         )}
 
         <View style={styles.infoCardMeta}>
+          {distanceText && <InfoRow icon="📍" text={`${distanceText} ${t('map.awayFromYou')}`} />}
           {poi.hours && <InfoRow icon="🕐" text={poi.hours} />}
           {poi.price && <InfoRow icon="💰" text={poi.price} />}
           {poi.phone && <InfoRow icon="📞" text={poi.phone} />}
@@ -518,6 +572,7 @@ const styles = StyleSheet.create({
     position: 'absolute', left: 12, right: 76, backgroundColor: 'rgba(1,81,151,0.92)',
     borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
   },
+  routeHintRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   routeHintText: { color: '#fff', fontSize: 13, fontWeight: '600' },
   routeResult: {
     position: 'absolute', left: 12, right: 76, backgroundColor: '#fff',

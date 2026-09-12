@@ -81,7 +81,9 @@
     "webFallback": {
       "title": "互动地图",
       "subtitle": "在iOS/Android应用中查看"
-    }
+    },
+    "locatingUser": "正在定位您的位置…",
+    "awayFromYou": "距您"
   },
   "phrases": {
     "title": "蒙古语短语",

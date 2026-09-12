@@ -81,7 +81,9 @@
     "webFallback": {
       "title": "Интерактивная карта",
       "subtitle": "Доступна в мобильном приложении iOS/Android"
-    }
+    },
+    "locatingUser": "Определяем ваше местоположение…",
+    "awayFromYou": "от вас"
   },
   "phrases": {
     "title": "Монгольские фразы",

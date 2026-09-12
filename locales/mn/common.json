@@ -81,7 +81,9 @@
     "webFallback": {
       "title": "Интерактив газрын зураг",
       "subtitle": "iOS/Android апп-д боломжтой"
-    }
+    },
+    "locatingUser": "Байршлыг тодорхойлж байна…",
+    "awayFromYou": "танаас алслагдсан"
   },
   "phrases": {
     "title": "Монгол хэллэгүүд",

@@ -81,7 +81,9 @@
     "webFallback": {
       "title": "Interactive Map",
       "subtitle": "Available in the iOS/Android app"
-    }
+    },
+    "locatingUser": "Locating you…",
+    "awayFromYou": "away"
   },
   "phrases": {
     "title": "Mongolian Phrases",
