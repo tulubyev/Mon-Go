@@ -350,6 +350,9 @@ export const api = {
   deleteMedia: (id: number, reason: string) =>
     request<{ success: boolean }>(`/api/media/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) }),
 
+  // ── Welcome screen video carousel ──────────────────────────────────────────
+  getWelcomeVideos: () => request<{ videos: WelcomeVideo[] }>('/api/welcome-videos'),
+
   // ── Events + Calendar ──────────────────────────────────────────────────────
   getEvents: (params: { category?: string; from?: string; to?: string; q?: string; limit?: number } = {}) => {
     const qs = new URLSearchParams();
@@ -488,6 +491,12 @@ export interface MediaListResponse {
   posts: MediaPost[];
   page: number;
   hasMore: boolean;
+}
+
+export interface WelcomeVideo {
+  id: number;
+  url: string;
+  season: 'winter' | 'spring' | 'summer' | 'autumn' | 'any';
 }
 
 export interface MediaAward {

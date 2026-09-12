@@ -1,10 +1,12 @@
-import { StyleSheet, Pressable, Text, View, Image, ScrollView, Platform, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, Text, View, Image, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { changeLanguage, getCurrentLanguage } from '@/lib/i18n';
 import { api } from '@/services/api';
+import SequentialVideoBlock, { FALLBACK_CATALOG, buildSeasonalPlaylist, toClip } from '@/components/SequentialVideo';
 
 const LANGUAGES = [
   { code: 'ru' as const, flag: '🇷🇺' },
@@ -13,14 +15,27 @@ const LANGUAGES = [
   { code: 'mn' as const, flag: '🇲🇳' },
 ];
 
-const CLIPS = ['clip1', 'clip2', 'clip3', 'clip4'];
-
 type ServerStatus = 'checking' | 'ok' | 'unreachable';
 
 export default function WelcomeScreen({ onContinue }: { onContinue: () => void }) {
   const { t } = useTranslation();
   const [current, setCurrent] = useState(getCurrentLanguage());
   const [serverStatus, setServerStatus] = useState<ServerStatus>('checking');
+
+  // Каталог роликов управляется из бэкенда (welcome_videos), не зашит в код
+  // — см. components/SequentialVideo.tsx. FALLBACK_CATALOG пуст, пока нет
+  // реальных отснятых роликов о Монголии: оба блока тогда просто показывают
+  // свой градиент без видео, а не 404 на несуществующий плейсхолдер.
+  const { data: catalog } = useQuery({
+    queryKey: ['welcome-videos'],
+    queryFn: async () => {
+      const { videos } = await api.getWelcomeVideos();
+      return videos.map(toClip);
+    },
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+  const playlist = buildSeasonalPlaylist(catalog && catalog.length > 0 ? catalog : FALLBACK_CATALOG);
 
   const runCheck = useCallback(() => {
     setServerStatus('checking');
@@ -39,29 +54,18 @@ export default function WelcomeScreen({ onContinue }: { onContinue: () => void }
     // Mongolian flag colors — deep blue to dark red, top to bottom.
     <LinearGradient colors={['#015197', '#7b241c']} style={styles.root}>
       <SafeAreaView style={styles.container}>
-        <View style={styles.brandSection}>
-          <Text style={styles.brandTitle}>MON-GO</Text>
-          <Text style={styles.brandSubtitle}>{t('home.subtitle')}</Text>
-        </View>
-
-        <View style={styles.logoSection}>
-          <View style={styles.frame}>
-            <Image source={require('@/assets/images/logo.jpeg')} style={styles.logoImage} resizeMode="contain" />
-            <ServerStatusOverlay status={serverStatus} onRetry={runCheck} t={t} />
+        {/* First video block — brand emblem overlay */}
+        <View style={styles.videoBlock}>
+          <SequentialVideoBlock playlist={playlist} startIndex={0} />
+          <View style={styles.emblemOverlay} pointerEvents="none">
+            <Image source={require('@/assets/images/logo.jpeg')} style={styles.emblemImage} resizeMode="contain" />
           </View>
         </View>
 
-        <View style={styles.carouselSection}>
-          <View style={styles.frame}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
-              {CLIPS.map((clip) => (
-                <View key={clip} style={styles.clipCard}>
-                  <Text style={styles.clipPlay}>▶️</Text>
-                  <Text style={styles.clipLabel}>{t('welcome.comingSoon')}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
+        {/* Second video block — server status overlay */}
+        <View style={styles.videoBlock}>
+          <SequentialVideoBlock playlist={playlist} startIndex={1} />
+          <ServerStatusOverlay status={serverStatus} onRetry={runCheck} t={t} />
         </View>
 
         <View style={styles.langSection}>
@@ -112,37 +116,26 @@ function ServerStatusOverlay({ status, onRetry, t }: { status: ServerStatus; onR
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  container: { flex: 1 },
-  brandSection: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  brandTitle: {
-    fontSize: 34, fontWeight: '800', letterSpacing: 2, color: '#fff',
-    textShadowColor: 'rgba(0,0,0,0.35)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 8,
-  },
-  brandSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 4 },
-  logoSection: { flex: 2, paddingHorizontal: 20, paddingVertical: 8 },
-  carouselSection: { flex: 2, paddingHorizontal: 20, paddingVertical: 8 },
-  frame: {
+  container: { flex: 1, paddingHorizontal: 20, paddingVertical: Platform.OS === 'web' ? 24 : 16, gap: 10 },
+  videoBlock: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 20,
+    borderRadius: 22,
     overflow: 'hidden',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.30)',
   },
-  logoImage: { width: '100%', height: '100%' },
-  carouselContent: { gap: 12, paddingHorizontal: 4, alignItems: 'stretch' },
-  clipCard: {
-    width: 110,
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    borderRadius: 14,
+  emblemOverlay: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
   },
-  clipPlay: { fontSize: 28 },
-  clipLabel: { fontSize: 11, color: 'rgba(255,255,255,0.75)', textAlign: 'center', paddingHorizontal: 6 },
-  langSection: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  emblemImage: {
+    width: '55%',
+    height: '55%',
+    borderRadius: 20,
+  },
+
+  langSection: { alignItems: 'center', justifyContent: 'center', paddingTop: 4 },
   langRow: { flexDirection: 'row', gap: 10 },
   langBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)' },
   langBtnActive: { backgroundColor: 'rgba(255,255,255,0.3)' },

@@ -33,6 +33,7 @@
     "expo-splash-screen": "~55.0.25",
     "expo-status-bar": "~55.0.6",
     "expo-symbols": "~55.0.9",
+    "expo-video": "~55.0.21",
     "expo-web-browser": "~55.0.20",
     "i18next": "^26.4.0",
     "react": "19.2.0",

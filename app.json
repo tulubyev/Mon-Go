@@ -70,7 +70,8 @@
       "expo-localization",
       "expo-secure-store",
       "expo-asset",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true
