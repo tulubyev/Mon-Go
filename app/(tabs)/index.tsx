@@ -5,16 +5,19 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { TOPICS } from '@/constants/topics';
 
-const GRID_PADDING = 12;
-const CARD_MARGIN = 5;
-// 17 tiles total (9 original topics + Photo/Video/Events/Calendar/Weather/
-// Nature/Emotions ported from BaikalLove's home screen + Ads). Map is no
-// longer a tile here — it moved to the bottom nav bar (see
+// -5% from the original 12/5/10 — the last row's labels (Безопасность,
+// Услуги) were clipping against numberOfLines={2}; trimming the gaps gives
+// each card a little more width for its own text instead of resizing type.
+const GRID_PADDING = 11.4;
+const CARD_MARGIN = 4.75;
+const GRID_GAP = 9.5;
+// 18 tiles total (9 original topics + Photo/Video/Events/Calendar/Weather/
+// Nature/Emotions ported from BaikalLove's home screen + Ads + Chat). Map is
+// no longer a tile here — it moved to the bottom nav bar (see
 // (tabs)/_layout.tsx). Language picking moved to Account — this screen no
-// longer has its own row for it. Chat isn't a tile either — it's reached as
-// "Спросить" from inside the Язык topic (app/topic/[key].tsx).
+// longer has its own row for it.
 //
-// 3 columns everywhere, phone and iPad alike (17 tiles -> 6 rows). What
+// 3 columns everywhere, phone and iPad alike (18 tiles -> 6 even rows). What
 // changes on a wider screen isn't the column count, it's how row height is
 // computed below — fit to the actual screen height instead of derived from
 // column width, which is what let a 3-column iPad grid fit without
@@ -23,25 +26,27 @@ const NUM_COLUMNS = 3;
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
-// Ads isn't in constants/topics.ts — it's an app section, not a wiki-style
-// topic — so it's added here before laying the grid out. Chat no longer
-// gets its own tile: it moved inside the Язык topic screen as a "Спросить"
-// quick-link (see app/topic/[key].tsx's SPECIAL_LINKS).
+// Ads/Chat aren't in constants/topics.ts — they're app sections, not
+// wiki-style topics — so they're added here before laying the grid out.
+// Chat also has a second entry point as "Спросить" inside the Язык topic
+// (app/topic/[key].tsx) — that quick-link stays, this is just a more
+// discoverable path back to the same /chat route.
 const EXTRA_TILES = [
   { key: 'ads', icon: '📋', route: '/ads' },
+  { key: 'chat', icon: '💬', route: '/chat' },
 ];
 const ALL_TILES = [...TOPICS, ...EXTRA_TILES];
 
 // Explicit placement (not just TOPICS order + append) so Безопасность
-// ("SOS") sits with Услуги on the last row. 17 tiles now that Chat moved
-// out — the last row runs 2 wide instead of 3, which is fine.
+// ("SOS") sits with Услуги and Чат on the last row — 18 tiles fills all
+// 3 columns evenly across 6 rows.
 const GRID_ORDER = [
   'transport', 'accommodation', 'finance',
   'communication', 'language', 'planning',
   'ulaanbaatar', 'food', 'weather',
   'nature', 'emotions', 'events',
   'calendar', 'photos', 'videos',
-  'safety', 'ads',
+  'safety', 'ads', 'chat',
 ];
 const gridData = GRID_ORDER
   .map(key => ALL_TILES.find(item => item.key === key))
@@ -61,7 +66,7 @@ export default function HomeScreen() {
   let cardMinHeight: number;
   if (isWide) {
     const rows = Math.ceil(gridData.length / numColumns);
-    const availableHeight = height - tabBarHeight - GRID_PADDING * 2 - (rows - 1) * 10;
+    const availableHeight = height - tabBarHeight - GRID_PADDING * 2 - (rows - 1) * GRID_GAP;
     cardMinHeight = clamp(availableHeight / rows - CARD_MARGIN * 2, 80, 170);
   } else {
     cardMinHeight = clamp(cardWidth * 0.85, 100, 170);
@@ -108,10 +113,10 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  grid: { padding: 12, gap: 10 },
+  grid: { padding: GRID_PADDING, gap: GRID_GAP },
   card: {
     flex: 1,
-    margin: 5,
+    margin: CARD_MARGIN,
     padding: 14,
     backgroundColor: '#f5f9ff',
     borderRadius: 14,
