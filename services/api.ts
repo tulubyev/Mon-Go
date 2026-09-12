@@ -350,8 +350,12 @@ export const api = {
   deleteMedia: (id: number, reason: string) =>
     request<{ success: boolean }>(`/api/media/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) }),
 
-  // ── Welcome screen video carousel ──────────────────────────────────────────
+  // ── Welcome screen video carousel (admin: admin/superadmin/moderator only) ─
   getWelcomeVideos: () => request<{ videos: WelcomeVideo[] }>('/api/welcome-videos'),
+  createWelcomeVideo: (data: { season: WelcomeVideo['season']; mediaData?: string; mediaUrl?: string }) =>
+    request<{ video: WelcomeVideo }>('/api/welcome-videos', { method: 'POST', body: JSON.stringify(data) }),
+  deleteWelcomeVideo: (id: number) =>
+    request<{ success: boolean }>(`/api/welcome-videos/${id}`, { method: 'DELETE' }),
 
   // ── Events + Calendar ──────────────────────────────────────────────────────
   getEvents: (params: { category?: string; from?: string; to?: string; q?: string; limit?: number } = {}) => {

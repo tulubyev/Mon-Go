@@ -109,6 +109,7 @@ function RootLayoutNav() {
           <Stack.Screen name="partner-profile" options={{ title: t('partner.editProfile'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="my-orders" options={{ title: t('orders.mine'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="notifications" options={{ title: t('notifications.title'), headerBackTitle: t('common.back') }} />
+          <Stack.Screen name="admin-welcome-videos" options={{ headerBackTitle: t('common.back') }} />
           {/* photos/videos/events/calendar/transport/topic/[key] moved into
               (tabs) — they used to live here as top-level Stack screens,
               which rendered full-screen with no bottom tab bar. Registering

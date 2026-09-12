@@ -145,6 +145,10 @@ function ProfileScreen() {
     { icon: 'heart-outline', label: t('auth.favorites'), color: '#EC4899', onPress: notReady },
   ];
 
+  if (['admin', 'superadmin', 'moderator'].includes(user.role)) {
+    menu.push({ icon: 'film-outline', label: 'Видео приветствия', color: '#0891B2', onPress: () => router.push('/admin-welcome-videos' as any) });
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
     <ScrollView contentContainerStyle={[styles.profileContent, { paddingBottom: tabBarHeight + 24 }]} showsVerticalScrollIndicator={false}>
