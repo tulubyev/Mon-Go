@@ -14,15 +14,12 @@ const CARD_MARGIN = 5;
 // longer has its own row for it. Chat isn't a tile either — it's reached as
 // "Спросить" from inside the Язык topic (app/topic/[key].tsx).
 //
-// Column count scales with width — on a phone, 3 fixed columns with 6 rows
-// was fine, but the same 3 columns on an iPad stretched each row so tall
-// that 17 tiles needed scrolling. More columns on wider screens keeps every
-// tile on screen at once instead.
-function columnsForWidth(width: number) {
-  if (width >= 900) return 6;
-  if (width >= 600) return 5;
-  return 3;
-}
+// 3 columns everywhere, phone and iPad alike (17 tiles -> 6 rows). What
+// changes on a wider screen isn't the column count, it's how row height is
+// computed below — fit to the actual screen height instead of derived from
+// column width, which is what let a 3-column iPad grid fit without
+// scrolling in the first place.
+const NUM_COLUMNS = 3;
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
@@ -54,8 +51,8 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
   const tabBarHeight = useBottomTabBarHeight();
-  const numColumns = columnsForWidth(width);
-  const isWide = numColumns > 3;
+  const numColumns = NUM_COLUMNS;
+  const isWide = width >= 600;
   const cardWidth = width / numColumns - GRID_PADDING - CARD_MARGIN * 2;
 
   // Phones keep the original width-derived sizing (already tuned). On wider
