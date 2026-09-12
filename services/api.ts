@@ -182,8 +182,19 @@ export const api = {
   tts: (text: string, lang = 'mn') =>
     `${BASE_URL}/api/tts?text=${encodeURIComponent(text)}&lang=${lang}`,
 
-  getPOI: (category = 'all') =>
-    request<POI[]>(`/api/poi?category=${category}`),
+  // near: optional {lat,lng,radiusKm} restricts to a bounding box around a
+  // point (server-side, see TMB bot.js) instead of the whole country — the
+  // map's first paint uses this for a fast "nearby" chunk before falling
+  // back to a full unfiltered fetch for everything else.
+  getPOI: (category = 'all', near?: { lat: number; lng: number; radiusKm: number }) => {
+    const params = new URLSearchParams({ category });
+    if (near) {
+      params.set('lat', String(near.lat));
+      params.set('lng', String(near.lng));
+      params.set('radiusKm', String(near.radiusKm));
+    }
+    return request<POI[]>(`/api/poi?${params.toString()}`);
+  },
 
   // Basic point-to-point routing (car, no turn-by-turn) — see TMB/route-routes.js.
   // Requires connectivity: this proxies to a self-hosted OSRM instance, unlike

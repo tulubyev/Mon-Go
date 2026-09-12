@@ -79,19 +79,45 @@ function MapNativeScreen() {
   const [locatingUser, setLocatingUser] = useState(false);
 
   useEffect(() => {
-    api.getPOI('all').then(setPois).catch(() => {}).finally(() => setLoading(false));
+    let cancelled = false;
+
+    // Two-phase load: the full country-wide fetch always runs (needed
+    // eventually regardless of location), but if a GPS fix comes back first
+    // a fast nearby-only chunk paints markers around the user right away
+    // instead of everyone waiting on ~13k rows to parse and render. Whoever
+    // resolves first clears `loading`; the full fetch always wins once it
+    // lands (nearby is a preview, not a replacement for completeness).
+    const fullFetch = api.getPOI('all');
+    fullFetch
+      .then(all => { if (!cancelled) setPois(all); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
+      if (status !== 'granted' || cancelled) return;
       setUserLocationVisible(true);
-      // One fix on load, just to power the "N km away" line in InfoCard —
-      // routing gets its own fresh fetch when actually started (see
-      // toggleRoutingMode), since a stale cached fix there could point a
-      // route from the wrong place.
-      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
-        .then((pos: any) => setUserCoords([pos.coords.longitude, pos.coords.latitude]))
-        .catch(() => {});
+      // Also powers the "N km away" line in InfoCard — routing gets its own
+      // fresh fetch when actually started (see toggleRoutingMode), since a
+      // stale cached fix there could point a route from the wrong place.
+      try {
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (cancelled) return;
+        const coords: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+        setUserCoords(coords);
+        api.getPOI('all', { lat: coords[1], lng: coords[0], radiusKm: 150 })
+          .then(nearby => {
+            if (cancelled || !nearby.length) return;
+            setPois(prev => (prev.length ? prev : nearby)); // don't clobber the full set if it already landed
+            setLoading(false);
+          })
+          .catch(() => {});
+      } catch {
+        // No fix — the full fetch above is still in flight and is the fallback.
+      }
     })();
+
+    return () => { cancelled = true; };
   }, []);
 
   const filtered = pois.filter(p => activeFilters.has(p.category));
@@ -298,13 +324,6 @@ function MapNativeScreen() {
         )}
       </Map>
 
-      {/* Loading overlay */}
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#3b82f6" />
-        </View>
-      )}
-
       {/* Category/layers dropdown — floats over the map, doesn't push it down */}
       <MapLayersControl
         categories={CATEGORIES}
@@ -313,8 +332,15 @@ function MapNativeScreen() {
         style={[styles.topBar, { top: insets.top + 8 }]}
       />
 
-      {/* POI count badge */}
-      {!loading && (
+      {/* POI count badge — the map itself renders immediately regardless of
+          POI load state (no full-screen blocking overlay anymore); this
+          corner pill just swaps its own content to a spinner while loading,
+          same spot, without covering or disabling the map underneath. */}
+      {loading ? (
+        <View style={[styles.countBadge, { top: insets.top + 60 }]} pointerEvents="none">
+          <ActivityIndicator size="small" color="#015197" />
+        </View>
+      ) : (
         <View style={[styles.countBadge, { top: insets.top + 60 }]}>
           <Text style={styles.countText}>{filtered.length} {t('map.objects')}</Text>
         </View>
@@ -558,7 +584,6 @@ const styles = StyleSheet.create({
   webFilterBar: { padding: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee', alignItems: 'flex-start' },
   marker: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   markerIcon: { fontSize: 24 },
-  loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)' },
   countBadge: { position: 'absolute', top: 60, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   offlineBadge: { position: 'absolute', right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   routeFab: {
