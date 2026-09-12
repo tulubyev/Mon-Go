@@ -80,44 +80,49 @@ function RootLayoutNav() {
   const { t } = useTranslation();
   const [showWelcome, setShowWelcome] = useState(true);
 
-  if (showWelcome) {
-    return <WelcomeScreen onContinue={() => setShowWelcome(false)} />;
-  }
-
+  // Providers wrap BOTH branches — WelcomeScreen itself now queries
+  // /api/welcome-videos (react-query) and needs QueryClientProvider in its
+  // tree just as much as the Stack below does. It used to return early,
+  // before this provider even mounted, which crashed with "No QueryClient
+  // set" the moment WelcomeScreen's useQuery call ran.
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
       <AuthProvider>
-        {/* No explicit light/dark ThemeProvider — @react-navigation/native v7
-            dropped the standalone component (DarkTheme/DefaultTheme are just
-            plain objects now, no longer paired with a provider export from
-            expo-router). Native-stack headers pick up the OS appearance on
-            their own; Mon-Go never customized colors.background/card beyond
-            that stock light/dark switch, so there's nothing lost here. */}
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: 'modal' }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="quiz" options={{ title: t('quiz.title'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="ocr" options={{ title: t('ocr.title'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="interpreter" options={{ title: t('interpreter.title'), headerBackTitle: t('common.back'), headerShown: false }} />
-          <Stack.Screen name="wiki/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="change-password" options={{ title: t('auth.changePassword'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="verify-phone" options={{ title: t('auth.verifyPhoneTitle'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="subscription" options={{ title: t('auth.subscription'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="partner-apply" options={{ title: t('partner.applyTitle'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="partner-dashboard" options={{ title: t('partner.dashboard'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="partner-profile" options={{ title: t('partner.editProfile'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="my-orders" options={{ title: t('orders.mine'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="notifications" options={{ title: t('notifications.title'), headerBackTitle: t('common.back') }} />
-          <Stack.Screen name="admin-welcome-videos" options={{ headerBackTitle: t('common.back') }} />
-          {/* photos/videos/events/calendar/transport/topic/[key] moved into
-              (tabs) — they used to live here as top-level Stack screens,
-              which rendered full-screen with no bottom tab bar. Registering
-              them inside the Tabs group instead (as hidden tabs, see
-              (tabs)/_layout.tsx) keeps the bar visible, same as
-              ads/chat/phrases/partners. */}
-          <Stack.Screen name="welcome" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
-        </Stack>
+        {showWelcome ? (
+          <WelcomeScreen onContinue={() => setShowWelcome(false)} />
+        ) : (
+          // No explicit light/dark ThemeProvider — @react-navigation/native v7
+          // dropped the standalone component (DarkTheme/DefaultTheme are just
+          // plain objects now, no longer paired with a provider export from
+          // expo-router). Native-stack headers pick up the OS appearance on
+          // their own; Mon-Go never customized colors.background/card beyond
+          // that stock light/dark switch, so there's nothing lost here.
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: 'modal' }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="quiz" options={{ title: t('quiz.title'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="ocr" options={{ title: t('ocr.title'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="interpreter" options={{ title: t('interpreter.title'), headerBackTitle: t('common.back'), headerShown: false }} />
+            <Stack.Screen name="wiki/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="change-password" options={{ title: t('auth.changePassword'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="verify-phone" options={{ title: t('auth.verifyPhoneTitle'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="subscription" options={{ title: t('auth.subscription'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="partner-apply" options={{ title: t('partner.applyTitle'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="partner-dashboard" options={{ title: t('partner.dashboard'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="partner-profile" options={{ title: t('partner.editProfile'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="my-orders" options={{ title: t('orders.mine'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="notifications" options={{ title: t('notifications.title'), headerBackTitle: t('common.back') }} />
+            <Stack.Screen name="admin-welcome-videos" options={{ headerBackTitle: t('common.back') }} />
+            {/* photos/videos/events/calendar/transport/topic/[key] moved into
+                (tabs) — they used to live here as top-level Stack screens,
+                which rendered full-screen with no bottom tab bar. Registering
+                them inside the Tabs group instead (as hidden tabs, see
+                (tabs)/_layout.tsx) keeps the bar visible, same as
+                ads/chat/phrases/partners. */}
+            <Stack.Screen name="welcome" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
+          </Stack>
+        )}
       </AuthProvider>
     </PersistQueryClientProvider>
   );
