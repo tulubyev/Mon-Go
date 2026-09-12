@@ -100,7 +100,6 @@ function RootLayoutNav() {
           <Stack.Screen name="quiz" options={{ title: t('quiz.title'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="ocr" options={{ title: t('ocr.title'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="interpreter" options={{ title: t('interpreter.title'), headerBackTitle: t('common.back'), headerShown: false }} />
-          <Stack.Screen name="transport" options={{ headerShown: false }} />
           <Stack.Screen name="wiki/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="change-password" options={{ title: t('auth.changePassword'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="verify-phone" options={{ title: t('auth.verifyPhoneTitle'), headerBackTitle: t('common.back') }} />
@@ -110,11 +109,12 @@ function RootLayoutNav() {
           <Stack.Screen name="partner-profile" options={{ title: t('partner.editProfile'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="my-orders" options={{ title: t('orders.mine'), headerBackTitle: t('common.back') }} />
           <Stack.Screen name="notifications" options={{ title: t('notifications.title'), headerBackTitle: t('common.back') }} />
-          {/* photos/videos/events/calendar moved into (tabs) — they used to
-              live here as top-level Stack screens, which rendered full-
-              screen with no bottom tab bar. Registering them inside the
-              Tabs group instead (as hidden tabs, see (tabs)/_layout.tsx)
-              keeps the bar visible, same as ads/chat/phrases/partners. */}
+          {/* photos/videos/events/calendar/transport/topic/[key] moved into
+              (tabs) — they used to live here as top-level Stack screens,
+              which rendered full-screen with no bottom tab bar. Registering
+              them inside the Tabs group instead (as hidden tabs, see
+              (tabs)/_layout.tsx) keeps the bar visible, same as
+              ads/chat/phrases/partners. */}
           <Stack.Screen name="welcome" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
         </Stack>
       </AuthProvider>

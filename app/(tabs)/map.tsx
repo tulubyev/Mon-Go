@@ -236,9 +236,14 @@ function MapNativeScreen() {
             filter={['!', ['has', 'point_count']]}
             style={{
               iconImage: ['get', 'icon'],
-              iconSize: 0.42,
-              iconAllowOverlap: false,
-              iconIgnorePlacement: false,
+              iconSize: 0.52,
+              // Clustering already thins density down to individual pins by
+              // clusterMaxZoom — without these, MapLibre's collision engine
+              // silently drops any icon that overlaps a neighbour, which at
+              // real-world POI density left most emoji invisible and only
+              // the colour halo showing (looked like plain dots).
+              iconAllowOverlap: true,
+              iconIgnorePlacement: true,
             }}
           />
         </GeoJSONSource>
