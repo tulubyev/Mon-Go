@@ -343,6 +343,21 @@ export const api = {
   markAllNotificationsRead: () =>
     request<{ ok: boolean }>('/api/notifications/read-all', { method: 'POST' }),
 
+  // ── Direct messaging (registered users only) ────────────────────────────
+  searchUsers: (q: string) =>
+    request<{ users: UserSearchResult[] }>(`/api/users/search?q=${encodeURIComponent(q)}`),
+  getConversations: () => request<{ conversations: Conversation[] }>('/api/conversations'),
+  startConversation: (recipientId: number) =>
+    request<{ conversation: Conversation }>('/api/conversations', { method: 'POST', body: JSON.stringify({ recipientId }) }),
+  getMessages: (conversationId: number, before?: number) =>
+    request<{ messages: ChatMessage[] }>(`/api/conversations/${conversationId}/messages${before ? `?before=${before}` : ''}`),
+  sendMessage: (conversationId: number, content: string) =>
+    request<{ message: ChatMessage }>(`/api/conversations/${conversationId}/messages`, { method: 'POST', body: JSON.stringify({ content }) }),
+  markConversationRead: (conversationId: number) =>
+    request<{ ok: boolean }>(`/api/conversations/${conversationId}/read`, { method: 'PUT' }),
+  deleteConversation: (conversationId: number) =>
+    request<{ success: boolean }>(`/api/conversations/${conversationId}`, { method: 'DELETE' }),
+
   // ── Community media (Photos/Videos) ───────────────────────────────────────
   getMedia: (type?: MediaType, sort: MediaSort = 'recent', page = 1) =>
     request<MediaListResponse>(
@@ -477,6 +492,31 @@ export interface AppNotification {
   order_id: number | null;
   read: boolean;
   created_at: string;
+}
+
+export interface UserSearchResult {
+  id: number;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
+export interface Conversation {
+  id: number;
+  otherUserId: number;
+  otherUserName: string;
+  otherUserAvatar: string | null;
+  lastMessage: string | null;
+  lastMessageAt: string | null;
+  unreadCount: number;
+}
+
+export interface ChatMessage {
+  id: number;
+  conversationId: number;
+  senderId: number;
+  content: string;
+  createdAt: string;
 }
 
 export type MediaType = 'photo' | 'video';

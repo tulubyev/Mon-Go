@@ -28,12 +28,12 @@ const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(mi
 
 // Ads/Chat aren't in constants/topics.ts — they're app sections, not
 // wiki-style topics — so they're added here before laying the grid out.
-// Chat also has a second entry point as "Спросить" inside the Язык topic
-// (app/topic/[key].tsx) — that quick-link stays, this is just a more
-// discoverable path back to the same /chat route.
+// "Чат" here is user-to-user direct messaging (messages/index.tsx), not the
+// AI assistant — that one is a different route (/chat) reached as
+// "Спросить" inside the Язык topic (app/topic/[key].tsx).
 const EXTRA_TILES = [
   { key: 'ads', icon: '📋', route: '/ads' },
-  { key: 'chat', icon: '💬', route: '/chat' },
+  { key: 'chat', icon: '💬', route: '/messages' },
 ];
 const ALL_TILES = [...TOPICS, ...EXTRA_TILES];
 

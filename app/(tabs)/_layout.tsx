@@ -16,7 +16,8 @@ import { useColorScheme } from '@/components/useColorScheme';
  * too — it's a home-grid tile now, same as Partners already was. Every
  * screen reachable only from a home-tile / banner (chat, phrases, partners,
  * ads, photos, videos, events, calendar, transport, topic/[key] — the
- * generic wiki-topic template) stays registered here rather than as a
+ * generic wiki-topic template, messages/* — user-to-user DMs) stays
+ * registered here rather than as a
  * top-level Stack screen specifically so the bottom tab bar keeps showing
  * while they're open — a screen outside this Tabs group renders full-screen
  * with no bar at all, which is exactly the bug this fixes.
@@ -101,6 +102,8 @@ export default function TabLayout() {
       <Tabs.Screen name="calendar" options={{ title: 'Календарь', href: null }} />
       <Tabs.Screen name="transport" options={{ href: null }} />
       <Tabs.Screen name="topic/[key]" options={{ href: null }} />
+      <Tabs.Screen name="messages/index" options={{ title: 'Сообщения', href: null }} />
+      <Tabs.Screen name="messages/[id]" options={{ href: null }} />
     </Tabs>
   );
 }
