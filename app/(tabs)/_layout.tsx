@@ -103,6 +103,7 @@ export default function TabLayout() {
       <Tabs.Screen name="calendar" options={{ title: 'Календарь', href: null }} />
       <Tabs.Screen name="transport" options={{ href: null }} />
       <Tabs.Screen name="topic/[key]" options={{ href: null }} />
+      <Tabs.Screen name="subtopic/[slug]" options={{ href: null }} />
       <Tabs.Screen name="messages/index" options={{ title: 'Сообщения', href: null }} />
       <Tabs.Screen name="messages/[id]" options={{ href: null }} />
       <Tabs.Screen name="login" options={{ href: null }} />

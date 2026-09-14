@@ -95,6 +95,34 @@ export interface ExchangeRate {
   updated_at?: string;
 }
 
+export interface ContentSubtopic {
+  slug: string;
+  icon?: string;
+  title: string;
+  blurb?: string;
+  item_count: number;
+  updated_at: string;
+}
+
+export interface ContentManifest {
+  topics: { topic_key: string; subtopics: ContentSubtopic[] }[];
+  version: number;
+}
+
+export interface SubtopicItem {
+  id: number;
+  title: string;
+  answer: string;
+  lang_effective: string;
+  updated_at: string;
+}
+
+export interface SubtopicContent {
+  slug: string;
+  title: string;
+  items: SubtopicItem[];
+}
+
 export interface AuthUser {
   id: number;
   email: string;
@@ -182,10 +210,10 @@ export const api = {
     }
   },
 
-  ask: (message: string, userId: string, topic?: string) =>
+  ask: (message: string, userId: string, topic?: string, subtopicSlug?: string) =>
     request<{ success: boolean; response: string; locations?: any[] }>('/api/mongolia/chat', {
       method: 'POST',
-      body: JSON.stringify({ message, userId, topic }),
+      body: JSON.stringify({ message, userId, topic, subtopicSlug }),
     }),
 
   translate: (text: string, from: string, to: string) =>
@@ -264,6 +292,16 @@ export const api = {
 
   getRates: (currency?: string) =>
     request<ExchangeRate[]>(`/api/rates${currency ? `?currency=${currency}` : ''}`),
+
+  // Prepared content (topic -> subtopic -> answer) — see TMB/faq-routes.js.
+  // Replaces the old pattern of every subquestion firing a live AI call:
+  // the manifest lists what's ready instantly, the AI chat stays as a
+  // fallback for whatever isn't (see subtopic/[slug].tsx).
+  getContentManifest: (lang = 'ru') =>
+    request<ContentManifest>(`/api/content/manifest?lang=${lang}`),
+
+  getSubtopicContent: (slug: string, lang = 'ru') =>
+    request<SubtopicContent>(`/api/content/subtopic/${slug}?lang=${lang}`),
 
   register: (data: { email: string; password: string; firstName: string; lastName?: string; phone?: string }) =>
     request<{ email: string; requiresVerification: boolean }>('/api/auth/register', {

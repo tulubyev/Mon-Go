@@ -22,7 +22,7 @@ const USER_ID = 'mobile_' + Math.random().toString(36).slice(2, 10);
 export default function ChatScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ question?: string; label?: string }>();
+  const params = useLocalSearchParams<{ question?: string; label?: string; subtopic?: string }>();
   const tabBarHeight = useBottomTabBarHeight();
   const [messages, setMessages] = useState<Message[]>([]);
   const [ratings, setRatings] = useState<Record<string, 'up' | 'down'>>({});
@@ -36,14 +36,14 @@ export default function ChatScreen() {
     try { await api.feedback(messageId, rating); } catch { /* silent */ }
   }, [ratings]);
 
-  const send = useCallback(async (text: string) => {
+  const send = useCallback(async (text: string, subtopicSlug?: string) => {
     if (!text.trim() || loading) return;
     const userMsg: Message = { id: Date.now().toString(), role: 'user', text: text.trim() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
     try {
-      const data = await api.ask(text.trim(), USER_ID);
+      const data = await api.ask(text.trim(), USER_ID, undefined, subtopicSlug);
       const botMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -63,7 +63,7 @@ export default function ChatScreen() {
 
   useEffect(() => {
     if (params.question) {
-      send(params.question);
+      send(params.question, params.subtopic);
     }
   }, [params.question]);
 

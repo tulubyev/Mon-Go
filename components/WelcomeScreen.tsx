@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { changeLanguage, getCurrentLanguage } from '@/lib/i18n';
 import { api } from '@/services/api';
 import SequentialVideoBlock, { FALLBACK_CATALOG, buildSeasonalPlaylist, toClip } from '@/components/SequentialVideo';
+import { useContentManifest } from '@/hooks/useContent';
 
 const LANGUAGES = [
   { code: 'ru' as const, flag: '🇷🇺' },
@@ -36,6 +37,12 @@ export default function WelcomeScreen({ onContinue }: { onContinue: () => void }
     retry: 1,
   });
   const playlist = buildSeasonalPlaylist(catalog && catalog.length > 0 ? catalog : FALLBACK_CATALOG);
+
+  // Prefetch prepared content here (not used on this screen itself) so the
+  // persisted react-query cache already has it by the time the user opens
+  // their first topic — avoids a visible flash from the old AI-question
+  // list to the subtopic grid on cold start.
+  useContentManifest(current);
 
   const runCheck = useCallback(() => {
     setServerStatus('checking');
