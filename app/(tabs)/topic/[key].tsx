@@ -4,6 +4,7 @@ import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { TOPICS } from '@/constants/topics';
 import { readingContainerStyle } from '@/constants/Layout';
+import MarkdownLiteText from '@/components/MarkdownLiteText';
 
 // A quick-link button shown above the regular subquestions, for a topic
 // that needs one entry point that isn't just "ask this canned question in
@@ -31,7 +32,7 @@ export default function TopicScreen() {
       <Stack.Screen options={{ title: `${topic.icon} ${t(`topicTitles.${topic.key}`)}` }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.overview}>
-          <Text style={styles.overviewText} selectable dataDetectorType="phoneNumber">{topic.overview}</Text>
+          <MarkdownLiteText text={topic.overview} style={styles.overviewText} selectable />
         </View>
         <Text style={styles.subheading}>Вопросы</Text>
         {SPECIAL_LINKS[key] && (

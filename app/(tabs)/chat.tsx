@@ -9,6 +9,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import MarkdownLiteText from '@/components/MarkdownLiteText';
 
 interface Message {
   id: string;
@@ -98,13 +99,11 @@ export default function ChatScreen() {
           renderItem={({ item }) => (
             <View style={styles.messageGroup}>
               <View style={[styles.bubble, item.role === 'user' ? styles.userBubble : styles.botBubble]}>
-                <Text
+                <MarkdownLiteText
+                  text={item.text}
                   style={[styles.bubbleText, item.role === 'user' && styles.userText]}
                   selectable
-                  dataDetectorType="phoneNumber"
-                >
-                  {item.text}
-                </Text>
+                />
               </View>
               {item.role === 'assistant' && (
                 <View style={styles.feedbackRow}>

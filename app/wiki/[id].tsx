@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { WIKI_ARTICLES, wikiCategoryLabel, type WikiLocale } from '@/constants/wiki';
 import { readingContainerStyle } from '@/constants/Layout';
+import MarkdownLiteText from '@/components/MarkdownLiteText';
 
 /**
  * Renders a very small subset of Markdown used by the article bodies:
@@ -26,13 +27,13 @@ function renderBody(body: string) {
     const inline = trimmed.match(/^\*(.+?)\*\s*(.*)$/s);
     if (inline) {
       return (
-        <Text key={i} style={styles.paragraph} selectable dataDetectorType="phoneNumber">
+        <Text key={i} style={styles.paragraph} selectable>
           <Text style={styles.inlineEmphasis}>{inline[1]}</Text>
-          {inline[2] ? ` ${inline[2]}` : ''}
+          {inline[2] ? <MarkdownLiteText text={` ${inline[2]}`} /> : null}
         </Text>
       );
     }
-    return <Text key={i} style={styles.paragraph} selectable dataDetectorType="phoneNumber">{trimmed}</Text>;
+    return <MarkdownLiteText key={i} text={trimmed} style={styles.paragraph} selectable />;
   });
 }
 
