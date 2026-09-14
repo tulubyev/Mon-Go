@@ -129,15 +129,30 @@ export class ApiError extends Error {
   }
 }
 
+const DEFAULT_TIMEOUT_MS = 15000;
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      ...options?.headers,
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...options?.headers,
+      },
+    });
+  } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      throw new ApiError(0, 'Нет ответа от сервера — проверьте подключение к интернету');
+    }
+    throw new ApiError(0, 'Не удалось подключиться к серверу — проверьте интернет-соединение');
+  } finally {
+    clearTimeout(timer);
+  }
   // Auth routes return { message } on errors — surface it instead of a bare
   // status code so login/register screens can show the real reason.
   const data = await response.json().catch(() => null);
