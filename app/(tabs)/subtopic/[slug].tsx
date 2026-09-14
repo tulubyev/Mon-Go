@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, Pressable, Text, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, ScrollView, Pressable, Text, View, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
@@ -30,6 +30,12 @@ export default function SubtopicScreen() {
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ title: data?.title || '…', headerBackTitle: t('common.back') }} />
       <ScrollView contentContainerStyle={[styles.scroll, readingContainerStyle, { paddingBottom: tabBarHeight + 24 }]}>
+        {!!data?.image_url && (
+          <View>
+            <Image source={{ uri: data.image_url }} style={styles.headerImage} resizeMode="cover" />
+            {!!data.image_attribution && <Text style={styles.imageAttribution}>{data.image_attribution}</Text>}
+          </View>
+        )}
         {isLoading ? (
           <ActivityIndicator color="#015197" style={{ marginTop: 40 }} />
         ) : items.length > 0 ? (
@@ -62,6 +68,8 @@ export default function SubtopicScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   scroll: { padding: 16, gap: 12 },
+  headerImage: { width: '100%', height: 180, borderRadius: 14, backgroundColor: '#f0f0f0' },
+  imageAttribution: { fontSize: 10, color: '#b0b0b0', marginTop: 4, textAlign: 'right' },
   card: { backgroundColor: '#f5f9ff', borderRadius: 12, padding: 14, gap: 8 },
   answerText: { fontSize: 15, lineHeight: 23, color: '#1a1a1a' },
   langNotice: { fontSize: 12, color: '#94A3B8', fontStyle: 'italic' },

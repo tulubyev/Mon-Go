@@ -100,6 +100,7 @@ export interface ContentSubtopic {
   icon?: string;
   title: string;
   blurb?: string;
+  image_url?: string | null;
   item_count: number;
   updated_at: string;
 }
@@ -120,6 +121,8 @@ export interface SubtopicItem {
 export interface SubtopicContent {
   slug: string;
   title: string;
+  image_url?: string | null;
+  image_attribution?: string | null;
   items: SubtopicItem[];
 }
 

@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, Pressable, Text, View } from 'react-native';
+import { StyleSheet, ScrollView, Pressable, Text, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -66,7 +66,11 @@ export default function TopicScreen() {
                   style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
                   onPress={() => router.push(`/subtopic/${sub.slug}` as any)}
                 >
-                  <Text style={styles.cardIcon}>{sub.icon || '📄'}</Text>
+                  {sub.image_url ? (
+                    <Image source={{ uri: sub.image_url }} style={styles.cardImage} resizeMode="cover" />
+                  ) : (
+                    <Text style={styles.cardIcon}>{sub.icon || '📄'}</Text>
+                  )}
                   <Text style={styles.cardTitle} numberOfLines={2}>{sub.title}</Text>
                   {!!sub.blurb && <Text style={styles.cardBlurb} numberOfLines={2}>{sub.blurb}</Text>}
                   {sub.item_count === 0 && <Text style={styles.cardAiHint}>🤖 спросить ИИ</Text>}
@@ -117,8 +121,10 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     padding: 12,
     gap: 4,
+    overflow: 'hidden',
   },
   cardPressed: { backgroundColor: '#f0f7ff' },
+  cardImage: { height: 80, marginTop: -12, marginHorizontal: -12, marginBottom: 6, backgroundColor: '#f0f0f0' },
   cardIcon: { fontSize: 24 },
   cardTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
   cardBlurb: { fontSize: 12, color: '#888', lineHeight: 16 },
