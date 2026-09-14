@@ -96,6 +96,7 @@ export default function TabLayout() {
       <Tabs.Screen name="phrases" options={{ title: t('tabs.phrases'), href: null }} />
       <Tabs.Screen name="partners" options={{ title: t('tabs.partners'), href: null }} />
       <Tabs.Screen name="ads" options={{ title: t('tabs.ads'), href: null }} />
+      <Tabs.Screen name="ads-list" options={{ href: null }} />
       <Tabs.Screen name="photos" options={{ title: 'Фото', href: null }} />
       <Tabs.Screen name="videos" options={{ title: 'Видео', href: null }} />
       <Tabs.Screen name="events" options={{ title: 'События', href: null }} />
