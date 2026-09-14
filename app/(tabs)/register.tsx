@@ -3,7 +3,8 @@ import {
   StyleSheet, Text, View, TextInput, Pressable, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
-import { router } from 'expo-router';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +15,7 @@ const BRAND = '#015197';
 export default function RegisterScreen() {
   const { t } = useTranslation();
   const { register } = useAuth();
+  const tabBarHeight = useBottomTabBarHeight();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -35,7 +37,7 @@ export default function RegisterScreen() {
         firstName: firstName.trim(),
         lastName: lastName.trim() || undefined,
       });
-      router.replace({ pathname: '/(auth)/verify' as any, params: { email: result.email } });
+      router.replace({ pathname: '/verify' as any, params: { email: result.email } });
     } catch (err: any) {
       setError(err.message || t('auth.registerError'));
     } finally {
@@ -45,7 +47,11 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={[styles.body, readingContainerStyle]} keyboardShouldPersistTaps="handled">
+      <Stack.Screen options={{ title: t('auth.registerTitle'), headerBackTitle: t('common.back') }} />
+      <ScrollView
+        contentContainerStyle={[styles.body, readingContainerStyle, { paddingBottom: tabBarHeight + 24 }]}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.title}>{t('auth.registerTitle')}</Text>
         <Text style={styles.subtitle}>{t('auth.registerSub')}</Text>
 
@@ -124,7 +130,7 @@ export default function RegisterScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>{t('auth.hasAccount')}</Text>
-          <Pressable onPress={() => router.replace('/(auth)/login' as any)}>
+          <Pressable onPress={() => router.replace('/login' as any)}>
             <Text style={styles.footerLink}> {t('auth.loginLink')}</Text>
           </Pressable>
         </View>

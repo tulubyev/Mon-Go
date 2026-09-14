@@ -3,7 +3,8 @@ import {
   StyleSheet, Text, View, TextInput, Pressable, ActivityIndicator,
   Platform, KeyboardAvoidingView, ScrollView,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +21,7 @@ export default function VerifyScreen() {
   const { t } = useTranslation();
   const { email } = useLocalSearchParams<{ email: string }>();
   const { verifyCode, sendCode } = useAuth();
+  const tabBarHeight = useBottomTabBarHeight();
 
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [submitting, setSubmitting] = useState(false);
@@ -87,7 +89,12 @@ export default function VerifyScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <Stack.Screen options={{ title: t('auth.verifyTitle'), headerBackTitle: t('common.back') }} />
+      <ScrollView
+        contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 24 }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Hidden real input — captures full OTP incl. iOS/Android autofill */}
         <TextInput
           ref={hiddenInput}

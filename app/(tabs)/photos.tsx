@@ -42,7 +42,7 @@ export default function PhotosScreen() {
   const awardsQ = useQuery({ queryKey: ['media-awards', 'photo'], queryFn: () => api.getMediaAwards('photo') });
 
   const requireAuth = (action: () => void) => {
-    if (!isAuthenticated) { router.push('/(auth)/login' as any); return; }
+    if (!isAuthenticated) { router.push('/login' as any); return; }
     action();
   };
 

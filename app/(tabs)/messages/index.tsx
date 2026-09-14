@@ -48,7 +48,7 @@ export default function MessagesScreen() {
           <Ionicons name="chatbubbles-outline" size={40} color="#94A3B8" />
           <Text style={styles.emptyTitle}>Нужен вход</Text>
           <Text style={styles.emptyText}>Сообщения доступны только зарегистрированным пользователям</Text>
-          <Pressable style={styles.loginBtn} onPress={() => router.push('/(auth)/login' as any)}>
+          <Pressable style={styles.loginBtn} onPress={() => router.push('/login' as any)}>
             <Text style={styles.loginBtnText}>Войти</Text>
           </Pressable>
         </View>

@@ -99,7 +99,6 @@ function RootLayoutNav() {
           // that stock light/dark switch, so there's nothing lost here.
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: 'modal' }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
             <Stack.Screen name="quiz" options={{ title: t('quiz.title'), headerBackTitle: t('common.back') }} />
             <Stack.Screen name="ocr" options={{ title: t('ocr.title'), headerBackTitle: t('common.back') }} />
@@ -114,12 +113,12 @@ function RootLayoutNav() {
             <Stack.Screen name="my-orders" options={{ title: t('orders.mine'), headerBackTitle: t('common.back') }} />
             <Stack.Screen name="notifications" options={{ title: t('notifications.title'), headerBackTitle: t('common.back') }} />
             <Stack.Screen name="admin-welcome-videos" options={{ headerBackTitle: t('common.back') }} />
-            {/* photos/videos/events/calendar/transport/topic/[key] moved into
-                (tabs) — they used to live here as top-level Stack screens,
-                which rendered full-screen with no bottom tab bar. Registering
-                them inside the Tabs group instead (as hidden tabs, see
-                (tabs)/_layout.tsx) keeps the bar visible, same as
-                ads/chat/phrases/partners. */}
+            {/* photos/videos/events/calendar/transport/topic/[key]/login/
+                register/verify moved into (tabs) — they used to live here as
+                top-level Stack screens, which rendered full-screen with no
+                bottom tab bar. Registering them inside the Tabs group instead
+                (as hidden tabs, see (tabs)/_layout.tsx) keeps the bar
+                visible, same as ads/chat/phrases/partners. */}
             <Stack.Screen name="welcome" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
           </Stack>
         )}

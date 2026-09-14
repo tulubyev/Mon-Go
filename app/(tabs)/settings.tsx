@@ -63,10 +63,10 @@ function GuestScreen() {
         ))}
       </View>
 
-      <Pressable style={styles.btnLogin} onPress={() => router.push('/(auth)/login' as any)}>
+      <Pressable style={styles.btnLogin} onPress={() => router.push('/login' as any)}>
         <Text style={styles.btnLoginText}>{t('auth.login')}</Text>
       </Pressable>
-      <Pressable style={styles.btnRegister} onPress={() => router.push('/(auth)/register' as any)}>
+      <Pressable style={styles.btnRegister} onPress={() => router.push('/register' as any)}>
         <Text style={styles.btnRegisterText}>{t('auth.register')}</Text>
       </Pressable>
 
@@ -178,7 +178,7 @@ function ProfileScreen() {
           {!emailVerified && (
             <Pressable
               style={styles.verifyBanner}
-              onPress={() => router.push({ pathname: '/(auth)/verify' as any, params: { email: user.email } })}
+              onPress={() => router.push({ pathname: '/verify' as any, params: { email: user.email } })}
             >
               <View style={styles.verifyBannerLeft}>
                 <Ionicons name="mail-outline" size={18} color="#D97706" />

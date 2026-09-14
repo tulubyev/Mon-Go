@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   StyleSheet, ScrollView, Pressable, Text, View, TextInput, Modal,
   Linking, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform, Alert,
@@ -33,10 +33,18 @@ export default function PartnersScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const [type, setType] = useState<string>('all');
   const [orderPartner, setOrderPartner] = useState<Partner | null>(null);
+  const chipScroll = useRef<ScrollView>(null);
+
+  const stepType = (dir: -1 | 1) => {
+    const cur = TYPES.findIndex(item => item.key === type);
+    const next = (cur + dir + TYPES.length) % TYPES.length;
+    setType(TYPES[next].key);
+    chipScroll.current?.scrollTo({ x: Math.max(0, next * 108 - 108), animated: true });
+  };
 
   const startOrder = (p: Partner) => {
     if (!isAuthenticated) {
-      router.push('/(auth)/login' as any);
+      router.push('/login' as any);
       return;
     }
     setOrderPartner(p);
@@ -52,6 +60,7 @@ export default function PartnersScreen() {
   });
 
   const open = (url: string) => Linking.openURL(url).catch(() => {});
+  const activeColor = TYPES.find(item => item.key === type)?.color ?? '#015197';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -64,28 +73,37 @@ export default function PartnersScreen() {
         )}
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.typeRow}
-        style={styles.typeScroll}
-      >
-        {TYPES.map(item => {
-          const active = item.key === type;
-          return (
-            <Pressable
-              key={item.key}
-              style={[styles.typeChip, active && { backgroundColor: item.color, borderColor: item.color }]}
-              onPress={() => setType(item.key)}
-            >
-              <Ionicons name={item.icon as any} size={15} color={active ? '#fff' : item.color} />
-              <Text style={[styles.typeLabel, active && styles.typeLabelActive]}>
-                {t(`partners.types.${item.key}`)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <View style={[styles.sliderWrap, { borderColor: activeColor }]}>
+        <Pressable style={styles.arrowBtn} onPress={() => stepType(-1)} hitSlop={8}>
+          <Text style={[styles.arrow, { color: activeColor }]}>‹</Text>
+        </Pressable>
+        <ScrollView
+          ref={chipScroll}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.typeRow}
+          style={styles.typeScroll}
+        >
+          {TYPES.map(item => {
+            const active = item.key === type;
+            return (
+              <Pressable
+                key={item.key}
+                style={[styles.typeChip, active && { backgroundColor: item.color, borderColor: item.color }]}
+                onPress={() => setType(item.key)}
+              >
+                <Ionicons name={item.icon as any} size={15} color={active ? '#fff' : item.color} />
+                <Text style={[styles.typeLabel, active && styles.typeLabelActive]}>
+                  {t(`partners.types.${item.key}`)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+        <Pressable style={styles.arrowBtn} onPress={() => stepType(1)} hitSlop={8}>
+          <Text style={[styles.arrow, { color: activeColor }]}>›</Text>
+        </Pressable>
+      </View>
 
       {isLoading ? (
         <View style={styles.center}>
@@ -255,8 +273,11 @@ const styles = StyleSheet.create({
   badge: { backgroundColor: '#015197', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, minWidth: 34, alignItems: 'center' },
   badgeText: { color: '#fff', fontWeight: '700', fontSize: 13 },
 
-  typeScroll: { maxHeight: 46, marginBottom: 4 },
-  typeRow: { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
+  sliderWrap: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8, borderWidth: 1.5, borderRadius: 16, paddingVertical: 4, paddingHorizontal: 2 },
+  arrowBtn: { paddingHorizontal: 6 },
+  arrow: { fontSize: 22, fontWeight: '700', lineHeight: 26 },
+  typeScroll: { flex: 1, maxHeight: 46 },
+  typeRow: { paddingHorizontal: 4, gap: 6, alignItems: 'center' },
   typeChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 13, height: 34, borderRadius: 17,

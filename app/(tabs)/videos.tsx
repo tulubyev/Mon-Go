@@ -36,7 +36,7 @@ export default function VideosScreen() {
   const postsQ = useQuery({ queryKey: ['media', 'video', sort], queryFn: () => api.getMedia('video', sort, 1) });
 
   const requireAuth = (action: () => void) => {
-    if (!isAuthenticated) { router.push('/(auth)/login' as any); return; }
+    if (!isAuthenticated) { router.push('/login' as any); return; }
     action();
   };
 

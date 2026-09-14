@@ -39,7 +39,7 @@ export default function EventsScreen() {
   });
 
   const requireAuth = (action: () => void) => {
-    if (!isAuthenticated) { router.push('/(auth)/login' as any); return; }
+    if (!isAuthenticated) { router.push('/login' as any); return; }
     action();
   };
 

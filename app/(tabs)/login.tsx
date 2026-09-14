@@ -3,7 +3,8 @@ import {
   StyleSheet, Text, View, TextInput, Pressable, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
-import { router } from 'expo-router';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +16,7 @@ const BRAND = '#015197';
 export default function LoginScreen() {
   const { t } = useTranslation();
   const { login } = useAuth();
+  const tabBarHeight = useBottomTabBarHeight();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +34,7 @@ export default function LoginScreen() {
       // Correct password, unverified email — send them to finish that
       // instead of leaving them at a dead-end error with no next step.
       if (err instanceof ApiError && err.data?.requiresVerification) {
-        router.replace({ pathname: '/(auth)/verify' as any, params: { email: err.data.email || email.trim().toLowerCase() } });
+        router.replace({ pathname: '/verify' as any, params: { email: err.data.email || email.trim().toLowerCase() } });
         return;
       }
       setError(err.message || t('auth.loginError'));
@@ -43,7 +45,11 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={[styles.body, readingContainerStyle]} keyboardShouldPersistTaps="handled">
+      <Stack.Screen options={{ title: t('auth.loginTitle'), headerBackTitle: t('common.back') }} />
+      <ScrollView
+        contentContainerStyle={[styles.body, readingContainerStyle, { paddingBottom: tabBarHeight + 24 }]}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.iconWrap}>
           <Ionicons name="log-in-outline" size={40} color={BRAND} />
         </View>
@@ -100,7 +106,7 @@ export default function LoginScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>{t('auth.noAccount')}</Text>
-          <Pressable onPress={() => router.replace('/(auth)/register' as any)}>
+          <Pressable onPress={() => router.replace('/register' as any)}>
             <Text style={styles.footerLink}> {t('auth.registerLink')}</Text>
           </Pressable>
         </View>
