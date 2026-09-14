@@ -10,7 +10,10 @@ import * as Cellular from 'expo-cellular';
 // needing regeneration. Anything else (lists, tables, ...) is explicitly
 // forbidden in the prompt and isn't parsed — it shows as plain text as-is.
 const BOLD_UNDERLINE = { fontWeight: '700' as const, textDecorationLine: 'underline' as const };
-const LINK_STYLE = { textDecorationLine: 'underline' as const };
+// Bright, not the app's muted brand blue — tappable phone numbers/links
+// need to visually announce themselves inside a wall of plain-text answer,
+// same as any link color would in a browser.
+const LINK_STYLE = { color: '#0EA5E9', fontWeight: '600' as const, textDecorationLine: 'underline' as const };
 
 const URL_RE = /https?:\/\/[^\s)\]]+/g;
 // Matches the app's own established phone formats (+976 XXXX XXXX,
