@@ -102,6 +102,10 @@ export default function LoginScreen() {
           >
             {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>{t('auth.login')}</Text>}
           </Pressable>
+
+          <Pressable onPress={() => router.push('/forgot-password' as any)} hitSlop={8}>
+            <Text style={styles.forgotLink}>{t('auth.forgotPasswordLink')}</Text>
+          </Pressable>
         </View>
 
         <View style={styles.footer}>
@@ -137,6 +141,7 @@ const styles = StyleSheet.create({
   },
   submitBtnDisabled: { backgroundColor: '#94A3B8', shadowOpacity: 0, elevation: 0 },
   submitText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  forgotLink: { textAlign: 'center', fontSize: 13, color: BRAND, fontWeight: '600', marginTop: 4 },
 
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
   footerText: { fontSize: 14, color: '#64748B' },

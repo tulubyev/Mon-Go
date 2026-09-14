@@ -277,6 +277,20 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
 
+  // Always resolves { success: true } whether or not the email is
+  // registered — doesn't reveal account existence, same as send-code.
+  forgotPassword: (email: string) =>
+    request<{ success: boolean }>('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (email: string, code: string, newPassword: string) =>
+    request<{ success: boolean; token: string; user: AuthUser }>('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, newPassword }),
+    }),
+
   getMe: () => request<AuthUser>('/api/auth/me'),
 
   // type 'email' is public (registration/login flow). type 'phone' requires
