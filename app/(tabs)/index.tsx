@@ -113,7 +113,9 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  grid: { padding: GRID_PADDING, gap: GRID_GAP },
+  // Vertical gap trimmed 5px further than horizontal — the bottom row's
+  // labels were clipping under the tab bar on iPhone.
+  grid: { padding: GRID_PADDING, rowGap: GRID_GAP - 5, columnGap: GRID_GAP },
   card: {
     flex: 1,
     margin: CARD_MARGIN,

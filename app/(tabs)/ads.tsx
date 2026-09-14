@@ -225,7 +225,6 @@ function CreateAdModal({
           <Pressable onPress={() => { reset(); onClose(); }}>
             <Text style={styles.modalCancel}>Отмена</Text>
           </Pressable>
-          <Text style={styles.modalTitle}>Новое объявление</Text>
           <Pressable onPress={submit} disabled={submitting}>
             <Text style={[styles.modalPost, submitting && styles.modalPostDisabled]}>
               {submitting ? '...' : 'Разместить'}
@@ -336,7 +335,6 @@ const styles = StyleSheet.create({
   modal: { flex: 1, backgroundColor: '#fff' },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
   modalCancel: { fontSize: 15, color: '#888' },
-  modalTitle: { fontSize: 16, fontWeight: '700' },
   modalPost: { fontSize: 15, color: '#3b82f6', fontWeight: '700' },
   modalPostDisabled: { color: '#aaa' },
   modalScroll: { flex: 1 },

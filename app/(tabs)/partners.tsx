@@ -99,6 +99,12 @@ export default function PartnersScreen() {
               </Pressable>
             );
           })}
+          {/* Apply as a partner with your own service type — the same
+              pick-a-preset-or-type-your-own flow as Wiki's add-category
+              chip, just landing on partner-apply.tsx instead of a modal. */}
+          <Pressable style={styles.addChip} onPress={() => router.push('/partner-apply' as any)}>
+            <Ionicons name="add" size={18} color="#015197" />
+          </Pressable>
         </ScrollView>
         <Pressable style={styles.arrowBtn} onPress={() => stepType(1)} hitSlop={8}>
           <Text style={[styles.arrow, { color: activeColor }]}>›</Text>
@@ -285,6 +291,7 @@ const styles = StyleSheet.create({
   },
   typeLabel: { fontSize: 13, fontWeight: '600', color: '#475569' },
   typeLabelActive: { color: '#fff' },
+  addChip: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#015197', borderStyle: 'dashed' },
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 8 },
   emptyEmoji: { fontSize: 44 },
