@@ -389,6 +389,13 @@ export const api = {
   updatePartnerMe: (data: Partial<PartnerApplyInput>) =>
     request<PartnerProfile>('/api/partner/me', { method: 'PUT', body: JSON.stringify(data) }),
 
+  // ── Admin moderation ──────────────────────────────────────────────────────
+  getPendingPartners: () => request<{ partners: PartnerProfile[] }>('/api/admin/partners?status=pending'),
+  setPartnerStatus: (id: number, status: 'approved' | 'rejected') =>
+    request<{ partner: PartnerProfile }>(`/api/admin/partners/${id}/status`, {
+      method: 'PUT', body: JSON.stringify({ status }),
+    }),
+
   getPartnerServices: () => request<PartnerService[]>('/api/partner/services'),
   createPartnerService: (data: PartnerServiceInput) =>
     request<PartnerService>('/api/partner/services', { method: 'POST', body: JSON.stringify(data) }),

@@ -149,6 +149,10 @@ function ProfileScreen() {
     menu.push({ icon: 'film-outline', label: 'Видео приветствия', color: '#0891B2', onPress: () => router.push('/admin-welcome-videos' as any) });
   }
 
+  if (user.role === 'admin') {
+    menu.push({ icon: 'briefcase-outline', label: 'Заявки в партнёры', color: '#10B981', onPress: () => router.push('/admin-partners' as any) });
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
     <ScrollView contentContainerStyle={[styles.profileContent, { paddingBottom: tabBarHeight + 24 }]} showsVerticalScrollIndicator={false}>
