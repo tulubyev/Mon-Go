@@ -409,6 +409,14 @@ export const api = {
   updatePartnerOrder: (id: number, data: { status?: OrderStatus; note?: string }) =>
     request<Order>(`/api/partner/orders/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
+  getAdminOrders: (params: { status?: OrderStatus; partnerId?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.status) qs.set('status', params.status);
+    if (params.partnerId) qs.set('partnerId', String(params.partnerId));
+    const suffix = qs.toString() ? `?${qs}` : '';
+    return request<{ orders: (Order & { partner_name: string })[] }>(`/api/admin/orders${suffix}`);
+  },
+
   // ── Customer orders + notifications ───────────────────────────────────────
   createOrder: (data: { partnerId: number; serviceId?: number; message?: string; customerName?: string; customerPhone?: string }) =>
     request<Order>('/api/orders', { method: 'POST', body: JSON.stringify(data) }),
