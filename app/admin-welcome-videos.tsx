@@ -36,10 +36,28 @@ export default function AdminWelcomeVideosScreen() {
   const [season, setSeason] = useState<WelcomeVideo['season']>('any');
   const [uploading, setUploading] = useState(false);
 
-  const videosQ = useQuery({ queryKey: ['welcome-videos-admin'], queryFn: () => api.getWelcomeVideos() });
+  const videosQ = useQuery({ queryKey: ['welcome-videos-admin'], queryFn: () => api.getAllWelcomeVideos() });
   const videos = videosQ.data?.videos || [];
 
   const isPrivileged = !!user && PRIVILEGED.includes(user.role);
+
+  const updateVideo = async (id: number, data: Parameters<typeof api.updateWelcomeVideo>[1]) => {
+    try {
+      await api.updateWelcomeVideo(id, data);
+      qc.invalidateQueries({ queryKey: ['welcome-videos-admin'] });
+      qc.invalidateQueries({ queryKey: ['welcome-videos'] });
+    } catch (e: any) {
+      Alert.alert('Ошибка', e.message || 'Не удалось изменить');
+    }
+  };
+
+  const moveVideo = (index: number, direction: -1 | 1) => {
+    const target = videos[index + direction];
+    const current = videos[index];
+    if (!target || !current) return;
+    updateVideo(current.id, { sortOrder: target.sort_order });
+    updateVideo(target.id, { sortOrder: current.sort_order });
+  };
 
   const pickAndUpload = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -130,13 +148,23 @@ export default function AdminWelcomeVideosScreen() {
           keyExtractor={v => String(v.id)}
           contentContainerStyle={styles.list}
           ListEmptyComponent={<Text style={styles.emptyText}>Роликов пока нет</Text>}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View style={styles.row}>
               <Ionicons name="film-outline" size={20} color={BRAND} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowSeason}>{SEASONS.find(s => s.key === item.season)?.label || item.season}</Text>
                 <Text style={styles.rowUrl} numberOfLines={1}>{item.url}</Text>
+                {item.is_active === false && <Text style={styles.rowInactive}>Отключён</Text>}
               </View>
+              <Pressable onPress={() => moveVideo(index, -1)} disabled={index === 0} hitSlop={8}>
+                <Ionicons name="chevron-up-outline" size={18} color={index === 0 ? '#CBD5E1' : '#334155'} />
+              </Pressable>
+              <Pressable onPress={() => moveVideo(index, 1)} disabled={index === videos.length - 1} hitSlop={8}>
+                <Ionicons name="chevron-down-outline" size={18} color={index === videos.length - 1 ? '#CBD5E1' : '#334155'} />
+              </Pressable>
+              <Pressable onPress={() => updateVideo(item.id, { isActive: item.is_active === false })} hitSlop={8}>
+                <Ionicons name={item.is_active === false ? 'eye-off-outline' : 'eye-outline'} size={18} color="#334155" />
+              </Pressable>
               <Pressable onPress={() => confirmDelete(item)} hitSlop={10}>
                 <Ionicons name="trash-outline" size={18} color="#EF4444" />
               </Pressable>
@@ -172,4 +200,5 @@ const styles = StyleSheet.create({
   },
   rowSeason: { fontSize: 13, fontWeight: '700', color: '#1E293B' },
   rowUrl: { fontSize: 11, color: '#94A3B8', marginTop: 1 },
+  rowInactive: { fontSize: 10, color: '#EF4444', fontWeight: '700', marginTop: 2 },
 });

@@ -452,6 +452,9 @@ export const api = {
     request<{ video: WelcomeVideo }>('/api/welcome-videos', { method: 'POST', body: JSON.stringify(data) }),
   deleteWelcomeVideo: (id: number) =>
     request<{ success: boolean }>(`/api/welcome-videos/${id}`, { method: 'DELETE' }),
+  getAllWelcomeVideos: () => request<{ videos: WelcomeVideo[] }>('/api/welcome-videos/all'),
+  updateWelcomeVideo: (id: number, data: { season?: WelcomeVideo['season']; sortOrder?: number; isActive?: boolean }) =>
+    request<{ video: WelcomeVideo }>(`/api/welcome-videos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // ── Events + Calendar ──────────────────────────────────────────────────────
   getEvents: (params: { category?: string; from?: string; to?: string; q?: string; limit?: number } = {}) => {
@@ -622,6 +625,8 @@ export interface WelcomeVideo {
   id: number;
   url: string;
   season: 'winter' | 'spring' | 'summer' | 'autumn' | 'any';
+  sort_order?: number;
+  is_active?: boolean;
 }
 
 export interface MediaAward {
