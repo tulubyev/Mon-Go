@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator, Modal, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,6 +30,7 @@ export default function CalendarScreen() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1); // 1-indexed
   const [selectedDay, setSelectedDay] = useState<number | null>(now.getDate());
+  const [detailEvent, setDetailEvent] = useState<EventItem | null>(null);
 
   const calQ = useQuery({ queryKey: ['event-calendar', year, month], queryFn: () => api.getEventCalendar(year, month) });
 
@@ -103,18 +104,59 @@ export default function CalendarScreen() {
           <Text style={styles.hint}>Нет событий на {selectedDay} {MONTH_NAMES[month - 1].toLowerCase()}</Text>
         ) : (
           dayEvents.map(e => (
-            <View key={e.id} style={styles.eventCard}>
+            <Pressable key={e.id} style={styles.eventCard} onPress={() => setDetailEvent(e)}>
               <Text style={styles.eventEmoji}>{e.emoji}</Text>
               <View style={{ flex: 1 }}>
                 <Text style={styles.eventTitle}>{e.title}</Text>
                 <Text style={styles.eventTime}>{new Date(e.start_date).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</Text>
                 {!!e.location && <Text style={styles.eventLocation}>📍 {e.location}</Text>}
               </View>
-            </View>
+              <Ionicons name="chevron-forward" size={18} color="#CBD5E1" />
+            </Pressable>
           ))
         )}
       </ScrollView>
+
+      <EventDetailModal event={detailEvent} onClose={() => setDetailEvent(null)} />
     </SafeAreaView>
+  );
+}
+
+function EventDetailModal({ event, onClose }: { event: EventItem | null; onClose: () => void }) {
+  return (
+    <Modal visible={!!event} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={styles.modalBackdrop}>
+        <View style={styles.modalCard}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {!!event?.image_url && (
+              <Image source={{ uri: event.image_url }} style={styles.modalImage} resizeMode="cover" />
+            )}
+            <View style={styles.modalBody}>
+              <Text style={styles.modalEmoji}>{event?.emoji}</Text>
+              <Text style={styles.modalTitle}>{event?.title}</Text>
+              {event && (
+                <Text style={styles.modalDate}>
+                  {new Date(event.start_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {event.end_date ? ` — ${new Date(event.end_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}` : ''}
+                </Text>
+              )}
+              {!!event?.location && <Text style={styles.modalLocation}>📍 {event.location}</Text>}
+              {!!event?.description && <Text style={styles.modalDesc}>{event.description}</Text>}
+              {!!event?.image_attribution && <Text style={styles.modalAttribution}>{event.image_attribution}</Text>}
+              {!!event?.external_url && (
+                <Pressable style={styles.modalLinkRow} onPress={() => Linking.openURL(event.external_url!)}>
+                  <Ionicons name="link-outline" size={14} color={BRAND} />
+                  <Text style={styles.modalLinkText}>Подробнее</Text>
+                </Pressable>
+              )}
+            </View>
+          </ScrollView>
+          <Pressable style={styles.modalCloseBtn} onPress={onClose}>
+            <Text style={styles.modalCloseBtnText}>Закрыть</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -144,4 +186,19 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 14, fontWeight: '700', color: '#1E293B' },
   eventTime: { fontSize: 12, color: BRAND, fontWeight: '600', marginTop: 2 },
   eventLocation: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
+
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' },
+  modalCard: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', overflow: 'hidden' },
+  modalImage: { width: '100%', height: 200, backgroundColor: '#E2E8F0' },
+  modalBody: { padding: 20, gap: 8 },
+  modalEmoji: { fontSize: 28 },
+  modalTitle: { fontSize: 19, fontWeight: '800', color: '#1E293B' },
+  modalDate: { fontSize: 13, color: BRAND, fontWeight: '700' },
+  modalLocation: { fontSize: 13, color: '#64748B' },
+  modalDesc: { fontSize: 14, color: '#334155', lineHeight: 21, marginTop: 6 },
+  modalAttribution: { fontSize: 10, color: '#CBD5E1', marginTop: 4 },
+  modalLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  modalLinkText: { fontSize: 13, color: BRAND, fontWeight: '700' },
+  modalCloseBtn: { margin: 16, height: 46, borderRadius: 14, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
+  modalCloseBtnText: { fontSize: 14, fontWeight: '700', color: '#334155' },
 });

@@ -684,9 +684,13 @@ export interface EventItem {
   end_date: string | null;
   location: string | null;
   external_url: string | null;
-  is_featured: boolean;
-  created_by: number | null;
-  attendee_count: number;
+  image_url?: string | null;
+  image_attribution?: string | null;
+  // Present on GET /api/events, absent on GET /api/events/calendar (that
+  // endpoint's SELECT is narrower — see event-routes.js).
+  is_featured?: boolean;
+  created_by?: number | null;
+  attendee_count?: number;
 }
 
 export interface EventReview {
