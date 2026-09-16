@@ -463,7 +463,7 @@ export const api = {
 
   // ── Welcome screen video carousel (admin: admin/superadmin/moderator only) ─
   getWelcomeVideos: () => request<{ videos: WelcomeVideo[] }>('/api/welcome-videos'),
-  createWelcomeVideo: (data: { season: WelcomeVideo['season']; mediaData?: string; mediaUrl?: string }) =>
+  createWelcomeVideo: (data: { season: WelcomeVideo['season']; mediaData?: string; mediaUrl?: string; trimSeconds?: 2 | 5 | 10 }) =>
     request<{ video: WelcomeVideo }>('/api/welcome-videos', { method: 'POST', body: JSON.stringify(data) }),
   deleteWelcomeVideo: (id: number) =>
     request<{ success: boolean }>(`/api/welcome-videos/${id}`, { method: 'DELETE' }),

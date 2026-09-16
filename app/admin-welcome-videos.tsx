@@ -23,6 +23,17 @@ const SEASONS: { key: WelcomeVideo['season']; label: string; emoji: string }[] =
   { key: 'any', label: 'Без сезона', emoji: '🎬' },
 ];
 
+// Matches ffmpeg-trim.js's VALID_TRIM_SECONDS on the server — cuts from the
+// start of the clip. null = upload as-is (still transcoded/downscaled if
+// the server does that regardless — here it only runs ffmpeg when a trim
+// length is picked, see welcome-video-routes.js).
+const TRIM_OPTIONS: { key: 2 | 5 | 10 | null; label: string }[] = [
+  { key: null, label: 'Без обрезки' },
+  { key: 2, label: '2 сек' },
+  { key: 5, label: '5 сек' },
+  { key: 10, label: '10 сек' },
+];
+
 const PRIVILEGED = ['admin', 'superadmin', 'moderator'];
 
 // Admin-only screen for the small set of trusted roles that can manage the
@@ -34,6 +45,7 @@ export default function AdminWelcomeVideosScreen() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [season, setSeason] = useState<WelcomeVideo['season']>('any');
+  const [trimSeconds, setTrimSeconds] = useState<2 | 5 | 10 | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const videosQ = useQuery({ queryKey: ['welcome-videos-admin'], queryFn: () => api.getAllWelcomeVideos() });
@@ -74,7 +86,11 @@ export default function AdminWelcomeVideosScreen() {
     try {
       const base64 = await new File(asset.uri).base64();
       const ext = asset.uri.toLowerCase().endsWith('.mov') ? 'quicktime' : 'mp4';
-      await api.createWelcomeVideo({ season, mediaData: `data:video/${ext};base64,${base64}` });
+      await api.createWelcomeVideo({
+        season,
+        mediaData: `data:video/${ext};base64,${base64}`,
+        ...(trimSeconds ? { trimSeconds } : {}),
+      });
       qc.invalidateQueries({ queryKey: ['welcome-videos-admin'] });
       qc.invalidateQueries({ queryKey: ['welcome-videos'] });
     } catch (e: any) {
@@ -125,6 +141,19 @@ export default function AdminWelcomeVideosScreen() {
             onPress={() => setSeason(s.key)}
           >
             <Text style={styles.seasonChipText}>{s.emoji} {s.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <Text style={styles.trimLabel}>Обрезка (от начала ролика)</Text>
+      <View style={styles.seasonRow}>
+        {TRIM_OPTIONS.map(t => (
+          <Pressable
+            key={String(t.key)}
+            style={[styles.seasonChip, trimSeconds === t.key && styles.seasonChipActive]}
+            onPress={() => setTrimSeconds(t.key)}
+          >
+            <Text style={styles.seasonChipText}>{t.label}</Text>
           </Pressable>
         ))}
       </View>
@@ -182,6 +211,7 @@ const styles = StyleSheet.create({
   noAccessText: { fontSize: 14, color: '#94A3B8', fontWeight: '600' },
 
   seasonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 16, paddingBottom: 4 },
+  trimLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginLeft: 16, marginTop: 4 },
   seasonChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E2E8F0' },
   seasonChipActive: { backgroundColor: BRAND, borderColor: BRAND },
   seasonChipText: { fontSize: 13, fontWeight: '600', color: '#334155' },
