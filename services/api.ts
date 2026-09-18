@@ -26,6 +26,15 @@ export interface POI {
   cuisine?: string;
   price_range?: string;
   wifi?: boolean;
+  // OSM enrichment (TMB scripts/import-osm-poi.js): raw subtype the object was
+  // tagged with (museum / monastery / peak / hotel / atm …), postal address,
+  // and the article a description was sourced from, if any.
+  kind?: string | null;
+  address?: string | null;
+  email?: string | null;
+  wikipedia?: string | null;
+  wikidata?: string | null;
+  description_source?: string | null;
 }
 
 export interface RouteResult {

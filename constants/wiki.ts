@@ -24,6 +24,7 @@ export const WIKI_CATEGORIES = [
   { key: 'tips',     color: '#8B5CF6', label: { ru: 'Советы',     en: 'Tips',     zh: '提示',   mn: 'Зөвлөгөө' } },
   { key: 'weather',  color: '#06B6D4', label: { ru: 'Погода',     en: 'Weather',  zh: '天气',   mn: 'Цаг агаар' } },
   { key: 'cities',   color: '#EC4899', label: { ru: 'Города',     en: 'Cities',   zh: '城市',   mn: 'Хот' } },
+  { key: 'people',   color: '#D97706', label: { ru: 'Люди',       en: 'People',   zh: '人物',   mn: 'Хүмүүс' } },
 ] as const;
 
 export const WIKI_ARTICLES: WikiArticle[] = [

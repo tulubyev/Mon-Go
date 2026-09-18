@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, Text, View, Pressable, ScrollView, Linking, ActivityIndicator, Alert } from 'react-native';
+import { Platform, StyleSheet, Text, View, Pressable, ScrollView, Linking, ActivityIndicator, Alert, Modal, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { api, POI, RouteResult } from '@/services/api';
 import { MAX_CARD_WIDTH } from '@/constants/Layout';
 import { useOfflineMapPack } from '@/hooks/useOfflineMapPack';
+import { useOfflineRegionPacks } from '@/hooks/useOfflineRegionPacks';
+import type { Region } from '@/constants/regions';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { MapLayersControl, MapCategory } from '@/components/MapLayersControl';
 import { mapStyleUrlForLocale } from '@/services/mapStyle';
@@ -52,6 +54,26 @@ const CATEGORY_COLOR: Record<string, string> = {
 const SPRITE_NAMES = new Set(['sight', 'food', 'accommodation', 'camp', 'transport', 'safety', 'fuel']);
 const spriteIcon = (category: string) => (SPRITE_NAMES.has(category) ? category : 'sight');
 
+// "12 ч 12 мин" instead of the old "732 мин" — OSRM durations for cross-
+// country drives run to 10+ hours.
+function formatDuration(seconds: number, t: (k: string) => string) {
+  const mins = Math.round(seconds / 60);
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m} ${t('map.routeMin')}`;
+  return `${h} ${t('map.routeHours')} ${m} ${t('map.routeMin')}`;
+}
+
+// Deep links for the "open in maps" fallback. Apple Maps only exists on iOS;
+// on Android its https URL just opens a browser tab, so Google is the
+// default there.
+function mapsOptions(lat: number, lng: number, t: (k: string) => string) {
+  const google = { label: t('map.googleMaps'), url: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` };
+  const apple = { label: t('map.appleMaps'), url: `https://maps.apple.com/?daddr=${lat},${lng}` };
+  const twoGis = { label: t('map.twoGis'), url: `dgis://2gis.ru/routeSearch/rsType/car/to/${lng},${lat}` };
+  return Platform.OS === 'ios' ? [apple, google, twoGis] : [google, twoGis];
+}
+
 // ─── Native map (iOS / Android) ───────────────────────────────────────────────
 function MapNativeScreen() {
   const { t, i18n } = useTranslation();
@@ -66,6 +88,12 @@ function MapNativeScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const isOnline = useNetworkStatus();
   const offlinePack = useOfflineMapPack();
+  const regionPacks = useOfflineRegionPacks();
+  const [regionsOpen, setRegionsOpen] = useState(false);
+  // Camera follows the GPS fix (heading from direction of travel) — the
+  // "drive along a track" mode. Any manual pan/zoom switches it off, which
+  // the SDK reports through onTrackUserLocationChange.
+  const [followMe, setFollowMe] = useState(false);
 
   // Basic point-to-point routing — an in-app preview line + distance/ETA,
   // not turn-by-turn nav (that stays the external Apple/Google/2GIS deep
@@ -181,17 +209,20 @@ function MapNativeScreen() {
   const zoomIn = () => cameraRef.current?.zoomTo?.(Math.min(ZOOM_MAX, zoom + 1), { duration: 200 });
   const zoomOut = () => cameraRef.current?.zoomTo?.(Math.max(ZOOM_MIN, zoom - 1), { duration: 200 });
 
-  // "Locate me" FAB — a fresh fix each tap rather than reusing userCoords,
-  // same reasoning as toggleRoutingMode: whatever's cached from map-load
-  // time could be stale by the time someone actually taps this.
+  // "Locate me" FAB — first tap: fresh fix + fly there. Second tap (already
+  // centred): toggle follow mode. A fresh fix each time rather than reusing
+  // userCoords, same reasoning as toggleRoutingMode: whatever's cached from
+  // map-load time could be stale by the time someone actually taps this.
   const locateMe = async () => {
     if (!userLocationVisible) return;
+    if (followMe) { setFollowMe(false); return; }
     setLocatingUser(true);
     try {
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const coords: [number, number] = [pos.coords.longitude, pos.coords.latitude];
       setUserCoords(coords);
       cameraRef.current?.flyTo?.({ center: coords, zoom: Math.max(zoom, 12), duration: 600 });
+      setFollowMe(true);
     } catch {
       // No fix available — nothing to do, the button just stays a no-op.
     } finally {
@@ -204,6 +235,39 @@ function MapNativeScreen() {
     setRoute(null);
     setRouteError(false);
   };
+
+  // Start a route to a specific place (InfoCard's "Маршрут сюда"): start
+  // from the current fix when we can get one, otherwise leave the start
+  // for a map tap and hold the destination.
+  const routeTo = async (poi: POI) => {
+    setSelected(null);
+    setRoutingMode(true);
+    setRoute(null);
+    setRouteError(false);
+    const dest: [number, number] = [poi.lng, poi.lat];
+    if (userLocationVisible) {
+      setLocatingUser(true);
+      try {
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        setRoutePoints([[pos.coords.longitude, pos.coords.latitude], dest]);
+        return;
+      } catch {
+        // fall through to manual start
+      } finally {
+        setLocatingUser(false);
+      }
+    }
+    setPendingDest(dest);
+    setRoutePoints([]);
+  };
+  // Destination chosen before the start (routeTo without a GPS fix): the
+  // next map tap becomes the start and the route completes immediately.
+  const [pendingDest, setPendingDest] = useState<[number, number] | null>(null);
+
+  const swapRoute = () => {
+    if (routePoints.length !== 2) return;
+    setRoutePoints([routePoints[1], routePoints[0]]);
+  };
   // Turning routing on seeds the start point from GPS so only the
   // destination needs a tap — falls back to the old two-tap flow (both
   // points picked on the map) if location permission was denied or the fix
@@ -211,6 +275,7 @@ function MapNativeScreen() {
   const toggleRoutingMode = async () => {
     if (routingMode) {
       resetRoute();
+      setPendingDest(null);
       setRoutingMode(false);
       return;
     }
@@ -238,7 +303,13 @@ function MapNativeScreen() {
     }
     const lngLat = e?.nativeEvent?.lngLat;
     if (!lngLat) return;
-    setRoutePoints(prev => (prev.length >= 2 ? prev : [...prev, lngLat]));
+    if (pendingDest) {
+      setRoutePoints([lngLat, pendingDest]);
+      setPendingDest(null);
+      return;
+    }
+    // Third tap re-picks the destination rather than being silently ignored.
+    setRoutePoints(prev => (prev.length >= 2 ? [prev[0], lngLat] : [...prev, lngLat]));
   };
 
   // One style file per locale (TMB/scripts/gen-map-styles.js) — the native
@@ -266,8 +337,14 @@ function MapNativeScreen() {
         <Camera
           ref={cameraRef}
           initialViewState={{ center: [103.8467, 46.8625], zoom: 5 }}
+          trackUserLocation={followMe ? 'course' : undefined}
+          onTrackUserLocationChange={(e: any) => {
+            // The SDK drops tracking on any manual gesture — mirror that so
+            // the FAB state stays honest.
+            if (!e?.nativeEvent?.trackUserLocation) setFollowMe(false);
+          }}
         />
-        {userLocationVisible && <UserLocation />}
+        {userLocationVisible && <UserLocation heading accuracy minDisplacement={5} />}
 
         {/* POIs — clustered source, colour-coded dots, tap a dot for the card */}
         <GeoJSONSource
@@ -382,6 +459,17 @@ function MapNativeScreen() {
       {/* Offline map pack — Mongolia has no signal outside the cities. Same
           row as the filters pill (top-left), pinned to the right edge. */}
       <OfflineMapControl pack={offlinePack} isOnline={isOnline} topOffset={insets.top + 8} />
+      {/* Per-aimag detail packs (z12–13, the ones with dirt tracks) */}
+      <Pressable style={[styles.regionsBadge, { top: insets.top + 8 + 30 }]} onPress={() => setRegionsOpen(true)}>
+        <Text style={styles.offlineBadgeText}>🗂 {t('map.regions')}</Text>
+      </Pressable>
+      <RegionPacksSheet
+        visible={regionsOpen}
+        onClose={() => setRegionsOpen(false)}
+        packs={regionPacks}
+        isOnline={isOnline}
+        lang={i18n.language}
+      />
 
       {/* Zoom +/- */}
       <View style={[styles.zoomControl, { bottom: tabBarHeight + 202 }]}>
@@ -396,11 +484,11 @@ function MapNativeScreen() {
 
       {/* Centre the map on the device's own position */}
       {userLocationVisible && (
-        <Pressable style={[styles.locateFab, { bottom: tabBarHeight + 140 }]} onPress={locateMe}>
+        <Pressable style={[styles.locateFab, followMe && styles.locateFabActive, { bottom: tabBarHeight + 140 }]} onPress={locateMe}>
           {locatingUser ? (
             <ActivityIndicator size="small" color="#015197" />
           ) : (
-            <Ionicons name="locate" size={22} color="#015197" />
+            <Ionicons name={followMe ? 'navigate' : 'locate'} size={22} color={followMe ? '#fff' : '#015197'} />
           )}
         </Pressable>
       )}
@@ -436,18 +524,23 @@ function MapNativeScreen() {
             <Text style={styles.routeResultText}>{t('map.routeError')}</Text>
           ) : route ? (
             <Text style={styles.routeResultText}>
-              📍 {(route.distanceMeters / 1000).toFixed(1)} {t('map.routeKm')} · ⏱ {Math.round(route.durationSeconds / 60)} {t('map.routeMin')}
+              📍 {(route.distanceMeters / 1000).toFixed(1)} {t('map.routeKm')} · ⏱ {formatDuration(route.durationSeconds, t)}
             </Text>
           ) : null}
-          <Pressable onPress={resetRoute} hitSlop={8}>
-            <Text style={styles.routeResetText}>✕</Text>
-          </Pressable>
+          <View style={styles.routeResultBtns}>
+            <Pressable onPress={swapRoute} hitSlop={8} accessibilityLabel={t('map.routeSwap')}>
+              <Ionicons name="swap-vertical" size={18} color="#64748B" />
+            </Pressable>
+            <Pressable onPress={resetRoute} hitSlop={8} accessibilityLabel={t('map.routeRestart')}>
+              <Text style={styles.routeResetText}>✕</Text>
+            </Pressable>
+          </View>
         </View>
       )}
 
       {/* InfoCard */}
       {selected && (
-        <InfoCard poi={selected} onClose={() => setSelected(null)} bottomOffset={tabBarHeight} userCoords={userCoords} />
+        <InfoCard poi={selected} onClose={() => setSelected(null)} bottomOffset={tabBarHeight} userCoords={userCoords} onRoute={routeTo} />
       )}
     </View>
   );
@@ -517,21 +610,32 @@ function distanceKm(a: [number, number], lat2: number, lng2: number) {
 }
 
 // ─── InfoCard ─────────────────────────────────────────────────────────────────
-function InfoCard({ poi, onClose, bottomOffset, userCoords }: { poi: POI; onClose: () => void; bottomOffset: number; userCoords: [number, number] | null }) {
+// OSM `wikipedia` tags are "lang:Title"; turn that into a real article URL.
+function wikipediaUrl(tag: string): string | null {
+  const m = /^([a-z]{2,3}):(.+)$/.exec(tag.trim());
+  if (!m) return null;
+  return `https://${m[1]}.wikipedia.org/wiki/${encodeURIComponent(m[2].replace(/ /g, '_'))}`;
+}
+
+function InfoCard({ poi, onClose, bottomOffset, userCoords, onRoute }: {
+  poi: POI; onClose: () => void; bottomOffset: number; userCoords: [number, number] | null; onRoute: (poi: POI) => void;
+}) {
   const { t } = useTranslation();
-  const catLabel = t(`map.categories.${poi.category}`, { defaultValue: poi.category });
+  // What the place IS (museum / peak / pharmacy…) beats the 7-bucket filter
+  // category; fall back to the category label when the importer had no kind.
+  const kindLabel = poi.kind
+    ? t(`map.kinds.${poi.kind}`, { defaultValue: t(`map.categories.${poi.category}`, { defaultValue: poi.category }) })
+    : t(`map.categories.${poi.category}`, { defaultValue: poi.category });
   const distance = userCoords ? distanceKm(userCoords, poi.lat, poi.lng) : null;
   const distanceText = distance == null ? null : distance < 1 ? `${Math.round(distance * 1000)} м` : `${distance.toFixed(1)} км`;
+  const wiki = poi.wikipedia ? wikipediaUrl(poi.wikipedia) : null;
 
-  const openDirections = () => {
-    const lat = poi.lat, lng = poi.lng;
-    const opts = [
-      { label: t('map.appleMaps'), url: `https://maps.apple.com/?daddr=${lat},${lng}` },
-      { label: t('map.googleMaps'), url: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` },
-      { label: t('map.twoGis'), url: `dgis://2gis.ru/routeSearch/rsType/car/to/${lng},${lat}` },
-    ];
-    // Open Apple Maps by default; TODO: ActionSheet for choice
-    Linking.openURL(opts[0].url);
+  const openInMaps = () => {
+    const opts = mapsOptions(poi.lat, poi.lng, t);
+    Alert.alert(t('map.openIn'), undefined, [
+      ...opts.map(o => ({ text: o.label, onPress: () => Linking.openURL(o.url) })),
+      { text: t('common.cancel'), style: 'cancel' as const },
+    ]);
   };
 
   return (
@@ -542,7 +646,9 @@ function InfoCard({ poi, onClose, bottomOffset, userCoords }: { poi: POI; onClos
           <Text style={styles.infoCardIcon}>{poi.icon || '📍'}</Text>
           <View style={styles.infoCardTitles}>
             <Text style={styles.infoCardName}>{poi.name_ru || poi.name}</Text>
-            <Text style={styles.infoCardCategory}>{catLabel}</Text>
+            <Text style={styles.infoCardCategory}>
+              {kindLabel}{poi.name_en && poi.name_en !== (poi.name_ru || poi.name) ? ` · ${poi.name_en}` : ''}
+            </Text>
           </View>
           <Pressable onPress={onClose} style={styles.closeBtn}>
             <Text style={styles.closeBtnText}>✕</Text>
@@ -555,28 +661,103 @@ function InfoCard({ poi, onClose, bottomOffset, userCoords }: { poi: POI; onClos
 
         <View style={styles.infoCardMeta}>
           {distanceText && <InfoRow icon="📍" text={`${distanceText} ${t('map.awayFromYou')}`} />}
+          {poi.address && <InfoRow icon="🏠" text={poi.address} />}
           {poi.hours && <InfoRow icon="🕐" text={poi.hours} />}
           {poi.price && <InfoRow icon="💰" text={poi.price} />}
           {poi.phone && <InfoRow icon="📞" text={poi.phone} />}
+          {poi.email && <InfoRow icon="✉️" text={poi.email} />}
         </View>
 
         <View style={styles.infoCardActions}>
+          <Pressable style={[styles.actionBtn, styles.actionBtnPrimary]} onPress={() => onRoute(poi)}>
+            <Text style={[styles.actionBtnText, styles.actionBtnTextPrimary]}>🧭 {t('map.routeToHere')}</Text>
+          </Pressable>
+          <Pressable style={styles.actionBtn} onPress={openInMaps}>
+            <Text style={styles.actionBtnText}>📍 {t('map.openInMaps')}</Text>
+          </Pressable>
           {poi.phone && (
             <Pressable style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${poi.phone}`)}>
               <Text style={styles.actionBtnText}>📞 {t('map.call')}</Text>
             </Pressable>
           )}
-          <Pressable style={[styles.actionBtn, styles.actionBtnPrimary]} onPress={openDirections}>
-            <Text style={[styles.actionBtnText, styles.actionBtnTextPrimary]}>📍 {t('map.route')}</Text>
-          </Pressable>
           {poi.url && (
             <Pressable style={styles.actionBtn} onPress={() => Linking.openURL(poi.url!)}>
               <Text style={styles.actionBtnText}>🌐 {t('map.website')}</Text>
             </Pressable>
           )}
+          {wiki && (
+            <Pressable style={styles.actionBtn} onPress={() => Linking.openURL(wiki)}>
+              <Text style={styles.actionBtnText}>📖 {t('map.wikipedia')}</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </View>
+  );
+}
+
+// ─── Region packs sheet ───────────────────────────────────────────────────────
+function RegionPacksSheet({ visible, onClose, packs, isOnline, lang }: {
+  visible: boolean; onClose: () => void; packs: ReturnType<typeof useOfflineRegionPacks>; isOnline: boolean; lang: string;
+}) {
+  const { t } = useTranslation();
+  const nameOf = (r: Region) => (lang === 'en' ? r.name.en : lang === 'mn' ? r.name.mn : r.name.ru);
+  const confirmRemove = (r: Region) => {
+    Alert.alert(t('map.regionDelete'), nameOf(r), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: () => packs.remove(r) },
+    ]);
+  };
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={styles.sheetBackdrop}>
+        <View style={styles.sheetCard}>
+          <View style={styles.infoCardHandle} />
+          <Text style={styles.sheetTitle}>{t('map.regionsTitle')}</Text>
+          <Text style={styles.sheetHint}>{t('map.regionsHint')}</Text>
+          <FlatList
+            data={packs.regions}
+            keyExtractor={r => r.id}
+            style={{ maxHeight: 420 }}
+            renderItem={({ item }) => {
+              const st = packs.stateOf(item);
+              return (
+                <View style={styles.regionRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.regionName}>{nameOf(item)}</Text>
+                    <Text style={styles.regionMeta}>
+                      {st.status === 'downloading'
+                        ? `${t('map.regionDownloading')} ${st.progress}%`
+                        : st.status === 'complete'
+                          ? `✓ ${t('map.regionDownloaded')} · ${item.sizeMB} MB`
+                          : `${t('map.regionApprox')} ${item.sizeMB} MB`}
+                    </Text>
+                  </View>
+                  {st.status === 'complete' ? (
+                    <Pressable style={styles.regionBtn} onPress={() => confirmRemove(item)}>
+                      <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                    </Pressable>
+                  ) : st.status === 'downloading' ? (
+                    <ActivityIndicator size="small" color="#015197" />
+                  ) : (
+                    <Pressable
+                      style={[styles.regionBtn, !isOnline && { opacity: 0.4 }]}
+                      disabled={!isOnline}
+                      onPress={() => packs.download(item)}
+                    >
+                      <Ionicons name="cloud-download-outline" size={20} color="#015197" />
+                    </Pressable>
+                  )}
+                </View>
+              );
+            }}
+          />
+          <Pressable style={styles.sheetCloseBtn} onPress={onClose}>
+            <Text style={styles.sheetCloseText}>{t('common.close', { defaultValue: 'OK' })}</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -673,8 +854,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5,
   },
-  routeResultText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
-  routeResetText: { fontSize: 16, color: '#94A3B8', fontWeight: '700', paddingLeft: 10 },
+  routeResultText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a', flex: 1 },
+  routeResultBtns: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  routeResetText: { fontSize: 16, color: '#94A3B8', fontWeight: '700', paddingLeft: 4 },
+  locateFabActive: { backgroundColor: '#015197' },
+  regionsBadge: { position: 'absolute', right: 12, backgroundColor: 'rgba(100,116,139,0.85)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  sheetBackdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.45)', justifyContent: 'flex-end' },
+  sheetCard: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, paddingBottom: 28 },
+  sheetTitle: { fontSize: 16, fontWeight: '800', color: '#1E293B', marginBottom: 4 },
+  sheetHint: { fontSize: 12, color: '#64748B', marginBottom: 10 },
+  regionRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  regionName: { fontSize: 14, fontWeight: '600', color: '#1E293B' },
+  regionMeta: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
+  regionBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18, backgroundColor: '#F1F5F9' },
+  sheetCloseBtn: { marginTop: 12, height: 44, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
+  sheetCloseText: { fontSize: 14, fontWeight: '700', color: '#334155' },
   offlineBadgeReady: { backgroundColor: 'rgba(21,128,61,0.85)' },
   offlineBadgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   countText: { color: '#fff', fontSize: 12, fontWeight: '600' },
