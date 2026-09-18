@@ -15,7 +15,7 @@ export default function AdminPartnersScreen() {
   const { user } = useAuth();
   const qc = useQueryClient();
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = ['admin', 'superadmin'].includes(user?.role || '');
   const partnersQ = useQuery({
     queryKey: ['admin-partners-pending'],
     queryFn: () => api.getPendingPartners(),

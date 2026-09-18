@@ -32,7 +32,7 @@ export default function AdminOrdersScreen() {
   const { user } = useAuth();
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all');
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = ['admin', 'superadmin'].includes(user?.role || '');
   const ordersQ = useQuery({
     queryKey: ['admin-orders', filter],
     queryFn: () => api.getAdminOrders(filter === 'all' ? {} : { status: filter }),

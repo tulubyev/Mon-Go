@@ -149,7 +149,7 @@ function ProfileScreen() {
     menu.push({ icon: 'film-outline', label: 'Видео приветствия', color: '#0891B2', onPress: () => router.push('/admin-welcome-videos' as any) });
   }
 
-  if (user.role === 'admin') {
+  if (['admin', 'superadmin'].includes(user.role)) {
     menu.push({ icon: 'briefcase-outline', label: 'Заявки в партнёры', color: '#10B981', onPress: () => router.push('/admin-partners' as any) });
     menu.push({ icon: 'receipt-outline', label: 'Брони по всем партнёрам', color: '#0EA5E9', onPress: () => router.push('/admin-orders' as any) });
   }
