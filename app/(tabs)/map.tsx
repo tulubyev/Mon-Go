@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api, POI, RouteResult } from '@/services/api';
+import { api, POI, RouteOption } from '@/services/api';
 import { MAX_CARD_WIDTH } from '@/constants/Layout';
 import { useOfflineMapPack } from '@/hooks/useOfflineMapPack';
 import { useOfflineRegionPacks } from '@/hooks/useOfflineRegionPacks';
@@ -64,6 +64,48 @@ function formatDuration(seconds: number, t: (k: string) => string) {
   return `${h} ${t('map.routeHours')} ${m} ${t('map.routeMin')}`;
 }
 
+// ─── Route stops ─────────────────────────────────────────────────────────────
+// A stop is one row of the route panel. It carries a stable id because rows
+// are reordered and deleted by identity rather than position, and `kind` so a
+// row can read "Моё местоположение" instead of a pair of numbers.
+type RouteStopKind = 'me' | 'poi' | 'map';
+interface RouteStop {
+  id: string;
+  coord: [number, number] | null; // [lng, lat]
+  label: string | null;
+  kind: RouteStopKind;
+}
+
+const STOP_LETTERS = 'ABCDEFGH';
+const MAX_STOPS = 8; // the endpoint takes 10; the panel stays readable at 8
+
+let stopSeq = 0;
+const emptyStop = (): RouteStop => ({ id: `stop-${++stopSeq}`, coord: null, label: null, kind: 'map' });
+
+const stopColor = (index: number, total: number) =>
+  index === 0 ? '#16A34A' : index === total - 1 ? '#DC2626' : '#015197';
+
+function stopLabel(stop: RouteStop, t: (k: string) => string) {
+  if (stop.kind === 'me') return t('map.routeMyLocation');
+  if (stop.label) return stop.label;
+  if (!stop.coord) return t('map.routePickOnMap');
+  return `${stop.coord[1].toFixed(4)}, ${stop.coord[0].toFixed(4)}`;
+}
+
+/** Bounding box of a line in the [ne, sw] pair MapLibre's fitBounds expects. */
+function lineBounds(coords: [number, number][]) {
+  if (!coords.length) return null;
+  let w = 180, s = 90, e = -180, n = -90;
+  for (const [lng, lat] of coords) {
+    if (lng < w) w = lng;
+    if (lng > e) e = lng;
+    if (lat < s) s = lat;
+    if (lat > n) n = lat;
+  }
+  if (e < w || n < s) return null;
+  return { ne: [e, n] as [number, number], sw: [w, s] as [number, number] };
+}
+
 // Deep links for the "open in maps" fallback. Apple Maps only exists on iOS;
 // on Android its https URL just opens a browser tab, so Google is the
 // default there.
@@ -95,14 +137,21 @@ function MapNativeScreen() {
   // the SDK reports through onTrackUserLocationChange.
   const [followMe, setFollowMe] = useState(false);
 
-  // Basic point-to-point routing — an in-app preview line + distance/ETA,
-  // not turn-by-turn nav (that stays the external Apple/Google/2GIS deep
-  // link in InfoCard). Requires connectivity: calls TMB's /api/route, which
-  // proxies to a self-hosted OSRM — unlike the map/POI browsing above, this
-  // one part doesn't work offline.
+  // Multi-stop routing — an in-app preview line + distance/ETA, not
+  // turn-by-turn nav (that stays the external Apple/Google/2GIS deep link in
+  // InfoCard). Requires connectivity: calls TMB's /api/route, which proxies
+  // to a self-hosted OSRM — unlike the map/POI browsing above, this one part
+  // doesn't work offline.
+  //
+  // Every point lives in `routeStops` as an explicit row, and exactly one row
+  // is armed (`activeStopId`) — that is the row a tap on the map fills. A tap
+  // used to mean start, finish or "replace the finish" depending on state
+  // nothing on screen showed.
   const [routingMode, setRoutingMode] = useState(false);
-  const [routePoints, setRoutePoints] = useState<[number, number][]>([]); // [lng,lat]
-  const [route, setRoute] = useState<RouteResult | null>(null);
+  const [routeStops, setRouteStops] = useState<RouteStop[]>(() => [emptyStop(), emptyStop()]);
+  const [activeStopId, setActiveStopId] = useState<string | null>(null);
+  const [routeOptions, setRouteOptions] = useState<RouteOption[]>([]);
+  const [selectedRouteIdx, setSelectedRouteIdx] = useState(0);
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState(false);
   const [locatingUser, setLocatingUser] = useState(false);
@@ -189,20 +238,81 @@ function MapNativeScreen() {
     }
     const id = feat.properties?.poiId ?? feat.id;
     const poi = pois.find(p => p.id === id);
-    if (poi) setSelected(poi);
+    if (!poi) return;
+    // While a route row is armed, tapping a place puts that place in the row
+    // instead of opening its card — otherwise known places were the one thing
+    // you could not use as a route point.
+    if (routingMode && activeStopId) {
+      fillStop(activeStopId, [poi.lng, poi.lat], poi.name, 'poi');
+      return;
+    }
+    setSelected(poi);
   };
 
+  const route = routeOptions[selectedRouteIdx] ?? null;
+
+  // Variants the router offered but the user didn't pick, drawn grey under
+  // the chosen line. OSRM only returns these for a plain A->B query.
+  const altCollection = useMemo(() => {
+    const others = routeOptions.filter((_, i) => i !== selectedRouteIdx);
+    if (!others.length) return null;
+    return {
+      type: 'FeatureCollection' as const,
+      features: others.map((o, i) => ({
+        type: 'Feature' as const,
+        id: `route-alt-${i}`,
+        properties: {},
+        geometry: o.geometry,
+      })),
+    };
+  }, [routeOptions, selectedRouteIdx]);
+
+  const fitRoute = (option: RouteOption) => {
+    const b = lineBounds(option.geometry?.coordinates ?? []);
+    if (!b) return;
+    // Padding clears the route panel on top and the result bar + tab bar below.
+    cameraRef.current?.fitBounds?.(b.ne, b.sw, [insets.top + 150, 48, tabBarHeight + 190, 48], 600);
+  };
+
+  // Re-plan whenever the stops change — including a reorder, which is the
+  // whole point of via-points. Keyed on the coordinates so re-rendering for
+  // an unrelated reason doesn't re-issue the request.
+  const stopsKey = routeStops
+    .map(s => (s.coord ? `${s.coord[0].toFixed(5)},${s.coord[1].toFixed(5)}` : '-'))
+    .join('|');
+
   useEffect(() => {
-    if (routePoints.length !== 2) return;
-    const [from, to] = routePoints;
-    if (!from || !to) return;
+    const coords = routeStops.map(s => s.coord).filter(Boolean) as [number, number][];
+    if (coords.length < 2 || coords.length !== routeStops.length) {
+      setRouteOptions([]);
+      setRouteError(false);
+      return;
+    }
+    // An edit while a request is in flight cancels it: the answer would be
+    // for the previous list of stops.
+    let cancelled = false;
+    const ctrl = new AbortController();
     setRouteLoading(true);
     setRouteError(false);
-    api.getRoute({ lat: from[1], lng: from[0] }, { lat: to[1], lng: to[0] })
-      .then(setRoute)
-      .catch(() => setRouteError(true))
-      .finally(() => setRouteLoading(false));
-  }, [routePoints]);
+    api.getRoute(coords.map(c => ({ lat: c[1], lng: c[0] })), ctrl.signal)
+      .then(res => {
+        if (cancelled) return;
+        const options = res.routes?.length ? res.routes : [res];
+        setRouteOptions(options);
+        setSelectedRouteIdx(0);
+        fitRoute(options[0]);
+      })
+      .catch(() => { if (!cancelled) setRouteError(true); })
+      .finally(() => { if (!cancelled) setRouteLoading(false); });
+    return () => { cancelled = true; ctrl.abort(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stopsKey]);
+
+  const legLines = useMemo(() => {
+    if (!route?.legs || route.legs.length < 2) return [];
+    return route.legs.map((leg, i) =>
+      `${STOP_LETTERS[i] ?? '•'} → ${STOP_LETTERS[i + 1] ?? '•'}   ${(leg.distanceMeters / 1000).toFixed(0)} ${t('map.routeKm')} · ${formatDuration(leg.durationSeconds, t)}`);
+  }, [route, t]);
 
   const ZOOM_MIN = 2;
   const ZOOM_MAX = 18;
@@ -230,66 +340,128 @@ function MapNativeScreen() {
     }
   };
 
-  const resetRoute = () => {
-    setRoutePoints([]);
-    setRoute(null);
+  const clearRoute = () => {
+    const fresh = [emptyStop(), emptyStop()];
+    setRouteStops(fresh);
+    setActiveStopId(fresh[0].id);
+    setRouteOptions([]);
+    setSelectedRouteIdx(0);
     setRouteError(false);
   };
 
-  // Start a route to a specific place (InfoCard's "Маршрут сюда"): start
-  // from the current fix when we can get one, otherwise leave the start
-  // for a map tap and hold the destination.
+  /** Write a point into a row and arm the next row still waiting for one. */
+  const fillStop = (id: string, coord: [number, number], label: string | null, kind: RouteStopKind) => {
+    const next = routeStops.map(s => (s.id === id ? { ...s, coord, label, kind } : s));
+    setRouteStops(next);
+    const nextEmpty = next.find(s => !s.coord);
+    setActiveStopId(nextEmpty ? nextEmpty.id : null);
+  };
+
+  const addStop = () => {
+    if (routeStops.length >= MAX_STOPS) return;
+    const fresh = emptyStop();
+    // New rows land before the finish — that is what "via" means.
+    const next = [...routeStops.slice(0, -1), fresh, routeStops[routeStops.length - 1]];
+    setRouteStops(next);
+    setActiveStopId(fresh.id);
+  };
+
+  const removeStop = (id: string) => {
+    if (routeStops.length <= 2) {
+      // The two ends are the route itself; empty the row instead of dropping it.
+      setRouteStops(routeStops.map(s => (s.id === id ? { ...s, coord: null, label: null, kind: 'map' } : s)));
+      setActiveStopId(id);
+      return;
+    }
+    const next = routeStops.filter(s => s.id !== id);
+    setRouteStops(next);
+    if (activeStopId === id) setActiveStopId(next.find(s => !s.coord)?.id ?? null);
+  };
+
+  const moveStop = (id: string, dir: -1 | 1) => {
+    const i = routeStops.findIndex(s => s.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= routeStops.length) return;
+    const next = routeStops.slice();
+    [next[i], next[j]] = [next[j], next[i]];
+    setRouteStops(next);
+  };
+
+  const reverseStops = () => setRouteStops([...routeStops].reverse());
+
+  const selectRoute = (index: number) => {
+    setSelectedRouteIdx(index);
+    const option = routeOptions[index];
+    if (option) fitRoute(option);
+  };
+
+  // A fresh fix rather than the cached `userCoords`, same reasoning as
+  // locateMe: what was cached at map-load time can be far away by now.
+  const useMyLocationFor = async (id: string) => {
+    if (!userLocationVisible) return;
+    setLocatingUser(true);
+    try {
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      fillStop(id, [pos.coords.longitude, pos.coords.latitude], null, 'me');
+    } catch {
+      // No fix — the row keeps waiting for a tap on the map.
+    } finally {
+      setLocatingUser(false);
+    }
+  };
+
+  // Start a route to a specific place (InfoCard's "Маршрут сюда"). The
+  // destination always lands in the last row and the start in the first, so
+  // the order never depends on whether a GPS fix arrived.
   const routeTo = async (poi: POI) => {
     setSelected(null);
     setRoutingMode(true);
-    setRoute(null);
+    setRouteOptions([]);
+    setSelectedRouteIdx(0);
     setRouteError(false);
-    const dest: [number, number] = [poi.lng, poi.lat];
-    if (userLocationVisible) {
-      setLocatingUser(true);
-      try {
-        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        setRoutePoints([[pos.coords.longitude, pos.coords.latitude], dest]);
-        return;
-      } catch {
-        // fall through to manual start
-      } finally {
-        setLocatingUser(false);
-      }
+    const start = emptyStop();
+    const dest: RouteStop = { ...emptyStop(), coord: [poi.lng, poi.lat], label: poi.name, kind: 'poi' };
+    setRouteStops([start, dest]);
+    setActiveStopId(start.id);
+    if (!userLocationVisible) return;
+    setLocatingUser(true);
+    try {
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setRouteStops([{ ...start, coord: [pos.coords.longitude, pos.coords.latitude], kind: 'me' }, dest]);
+      setActiveStopId(null);
+    } catch {
+      // No fix — the first row waits for a tap.
+    } finally {
+      setLocatingUser(false);
     }
-    setPendingDest(dest);
-    setRoutePoints([]);
   };
-  // Destination chosen before the start (routeTo without a GPS fix): the
-  // next map tap becomes the start and the route completes immediately.
-  const [pendingDest, setPendingDest] = useState<[number, number] | null>(null);
 
-  const swapRoute = () => {
-    if (routePoints.length !== 2) return;
-    setRoutePoints([routePoints[1], routePoints[0]]);
-  };
-  // Turning routing on seeds the start point from GPS so only the
-  // destination needs a tap — falls back to the old two-tap flow (both
-  // points picked on the map) if location permission was denied or the fix
-  // fails, which is common in the steppe.
+  // Turning routing on seeds the start from GPS so only the destination is
+  // left to pick — falls back to picking both on the map if permission was
+  // denied or the fix fails, which is common in the steppe.
   const toggleRoutingMode = async () => {
     if (routingMode) {
-      resetRoute();
-      setPendingDest(null);
       setRoutingMode(false);
+      clearRoute();
       return;
     }
+    const fresh = [emptyStop(), emptyStop()];
+    setRouteStops(fresh);
+    setRouteOptions([]);
+    setSelectedRouteIdx(0);
+    setRouteError(false);
     setRoutingMode(true);
-    if (userLocationVisible) {
-      setLocatingUser(true);
-      try {
-        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        setRoutePoints([[pos.coords.longitude, pos.coords.latitude]]);
-      } catch {
-        // No fix — stay in manual two-tap mode.
-      } finally {
-        setLocatingUser(false);
-      }
+    setActiveStopId(fresh[0].id);
+    if (!userLocationVisible) return;
+    setLocatingUser(true);
+    try {
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setRouteStops([{ ...fresh[0], coord: [pos.coords.longitude, pos.coords.latitude], kind: 'me' }, fresh[1]]);
+      setActiveStopId(fresh[1].id);
+    } catch {
+      // No fix — the first row just waits for a tap.
+    } finally {
+      setLocatingUser(false);
     }
   };
   // v11 fires onPress with a NativeSyntheticEvent — the coordinate is at
@@ -302,14 +474,10 @@ function MapNativeScreen() {
       return;
     }
     const lngLat = e?.nativeEvent?.lngLat;
-    if (!lngLat) return;
-    if (pendingDest) {
-      setRoutePoints([lngLat, pendingDest]);
-      setPendingDest(null);
-      return;
-    }
-    // Third tap re-picks the destination rather than being silently ignored.
-    setRoutePoints(prev => (prev.length >= 2 ? [prev[0], lngLat] : [...prev, lngLat]));
+    // With every row filled no row is armed, and a tap changes nothing —
+    // edits go through the panel, where it is visible what is being changed.
+    if (!lngLat || !activeStopId) return;
+    fillStop(activeStopId, lngLat, null, 'map');
   };
 
   // One style file per locale (TMB/scripts/gen-map-styles.js) — the native
@@ -413,14 +581,25 @@ function MapNativeScreen() {
           />
         </GeoJSONSource>
 
-        {/* Route pins */}
-        {routePoints.map((pt, i) => (
-          <Marker key={`route-pt-${i}`} id={`route-pt-${i}`} lngLat={pt}>
-            <View style={styles.marker}>
-              <Text style={styles.markerIcon}>{i === 0 ? '🟢' : '🔴'}</Text>
+        {/* Route pins — lettered, matching the rows of the panel */}
+        {routeStops.map((stop, i) => (stop.coord ? (
+          <Marker key={stop.id} id={`route-stop-${stop.id}`} lngLat={stop.coord}>
+            <View style={[styles.stopPin, { backgroundColor: stopColor(i, routeStops.length) }]}>
+              <Text style={styles.stopPinText}>{STOP_LETTERS[i] ?? '•'}</Text>
             </View>
           </Marker>
-        ))}
+        ) : null))}
+
+        {/* Unselected variants first so the chosen line draws over them */}
+        {altCollection && (
+          <GeoJSONSource id="route-alt-source" data={altCollection}>
+            <Layer
+              id="route-alt-line"
+              type="line"
+              style={{ lineColor: '#94A3B8', lineWidth: 3, lineOpacity: 0.75 }}
+            />
+          </GeoJSONSource>
+        )}
 
         {/* Route line preview */}
         {route && (
@@ -428,7 +607,7 @@ function MapNativeScreen() {
             <Layer
               id="route-line"
               type="line"
-              style={{ lineColor: '#015197', lineWidth: 4, lineOpacity: 0.85 }}
+              style={{ lineColor: '#015197', lineWidth: 5, lineOpacity: 0.9 }}
             />
           </GeoJSONSource>
         )}
@@ -501,40 +680,137 @@ function MapNativeScreen() {
         <Text style={styles.routeFabIcon}>🧭</Text>
       </Pressable>
 
-      {routingMode && locatingUser && (
-        <View style={[styles.routeHint, styles.routeHintRow, { bottom: tabBarHeight + 76 }]}>
-          <ActivityIndicator size="small" color="#fff" />
-          <Text style={styles.routeHintText}>{t('map.locatingUser')}</Text>
-        </View>
-      )}
+      {/* Route panel — the list of stops, always showing which row a tap fills */}
+      {routingMode && (
+        <View style={[styles.routePanel, { top: insets.top + 8 }]}>
+          <View style={styles.routePanelHead}>
+            <Text style={styles.routePanelTitle}>{t('map.route')}</Text>
+            {locatingUser && <ActivityIndicator size="small" color="#015197" />}
+            <View style={styles.routePanelHeadBtns}>
+              <Pressable onPress={reverseStops} hitSlop={8} accessibilityLabel={t('map.routeSwap')}>
+                <Ionicons name="swap-vertical" size={18} color="#64748B" />
+              </Pressable>
+              <Pressable onPress={toggleRoutingMode} hitSlop={8} accessibilityLabel={t('map.routeRestart')}>
+                <Ionicons name="close" size={18} color="#64748B" />
+              </Pressable>
+            </View>
+          </View>
 
-      {routingMode && !locatingUser && routePoints.length < 2 && (
-        <View style={[styles.routeHint, { bottom: tabBarHeight + 76 }]}>
-          <Text style={styles.routeHintText}>
-            {routePoints.length === 0 ? t('map.routeTapFrom') : t('map.routeTapTo')}
-          </Text>
-        </View>
-      )}
+          <ScrollView style={styles.stopScroll} showsVerticalScrollIndicator={false}>
+            {routeStops.map((stop, i) => {
+              const armed = stop.id === activeStopId;
+              return (
+                <Pressable
+                  key={stop.id}
+                  style={[styles.stopRow, armed && styles.stopRowArmed]}
+                  onPress={() => setActiveStopId(stop.id)}
+                >
+                  <View style={[styles.stopBadge, { backgroundColor: stopColor(i, routeStops.length) }]}>
+                    <Text style={styles.stopBadgeText}>{STOP_LETTERS[i] ?? '•'}</Text>
+                  </View>
+                  <Text
+                    style={[styles.stopLabel, !stop.coord && styles.stopLabelEmpty]}
+                    numberOfLines={1}
+                  >
+                    {stopLabel(stop, t)}
+                  </Text>
+                  {userLocationVisible && (
+                    <Pressable
+                      onPress={() => useMyLocationFor(stop.id)}
+                      hitSlop={6}
+                      accessibilityLabel={t('map.routeStartFromMe')}
+                    >
+                      <Ionicons name="locate" size={16} color="#015197" />
+                    </Pressable>
+                  )}
+                  {routeStops.length > 2 && (
+                    <>
+                      <Pressable
+                        onPress={() => moveStop(stop.id, -1)}
+                        hitSlop={6}
+                        disabled={i === 0}
+                        accessibilityLabel={t('map.routeMoveUp')}
+                      >
+                        <Ionicons name="chevron-up" size={16} color={i === 0 ? '#E2E8F0' : '#94A3B8'} />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => moveStop(stop.id, 1)}
+                        hitSlop={6}
+                        disabled={i === routeStops.length - 1}
+                        accessibilityLabel={t('map.routeMoveDown')}
+                      >
+                        <Ionicons
+                          name="chevron-down"
+                          size={16}
+                          color={i === routeStops.length - 1 ? '#E2E8F0' : '#94A3B8'}
+                        />
+                      </Pressable>
+                    </>
+                  )}
+                  <Pressable
+                    onPress={() => removeStop(stop.id)}
+                    hitSlop={6}
+                    accessibilityLabel={t('map.routeRemoveStop')}
+                  >
+                    <Ionicons name="close-circle" size={16} color="#CBD5E1" />
+                  </Pressable>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
 
-      {routingMode && routePoints.length === 2 && (
-        <View style={[styles.routeResult, { bottom: tabBarHeight + 76 }]}>
-          {routeLoading ? (
-            <ActivityIndicator size="small" color="#015197" />
-          ) : routeError ? (
-            <Text style={styles.routeResultText}>{t('map.routeError')}</Text>
-          ) : route ? (
-            <Text style={styles.routeResultText}>
-              📍 {(route.distanceMeters / 1000).toFixed(1)} {t('map.routeKm')} · ⏱ {formatDuration(route.durationSeconds, t)}
-            </Text>
-          ) : null}
-          <View style={styles.routeResultBtns}>
-            <Pressable onPress={swapRoute} hitSlop={8} accessibilityLabel={t('map.routeSwap')}>
-              <Ionicons name="swap-vertical" size={18} color="#64748B" />
+          {routeStops.length < MAX_STOPS ? (
+            <Pressable style={styles.addStopBtn} onPress={addStop}>
+              <Ionicons name="add" size={16} color="#015197" />
+              <Text style={styles.addStopText}>{t('map.routeAddStop')}</Text>
             </Pressable>
-            <Pressable onPress={resetRoute} hitSlop={8} accessibilityLabel={t('map.routeRestart')}>
+          ) : (
+            <Text style={styles.stopHint}>{t('map.routeMaxStops')}</Text>
+          )}
+        </View>
+      )}
+
+      {routingMode && (routeLoading || routeError || route) && (
+        <View style={[styles.routeResult, { bottom: tabBarHeight + 76 }]}>
+          <View style={styles.routeResultMain}>
+            {routeLoading ? (
+              <ActivityIndicator size="small" color="#015197" />
+            ) : routeError ? (
+              <Text style={styles.routeResultText}>{t('map.routeError')}</Text>
+            ) : route ? (
+              <View style={styles.routeResultFigures}>
+                <Text style={styles.routeResultText}>
+                  📍 {(route.distanceMeters / 1000).toFixed(1)} {t('map.routeKm')} · ⏱ {formatDuration(route.durationSeconds, t)}
+                </Text>
+                {legLines.map((line, i) => (
+                  <Text key={i} style={styles.routeLegText}>{line}</Text>
+                ))}
+              </View>
+            ) : null}
+            <Pressable onPress={clearRoute} hitSlop={8} accessibilityLabel={t('map.routeRestart')}>
               <Text style={styles.routeResetText}>✕</Text>
             </Pressable>
           </View>
+
+          {routeOptions.length > 1 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.altRow}
+            >
+              {routeOptions.map((option, i) => (
+                <Pressable
+                  key={i}
+                  style={[styles.altChip, i === selectedRouteIdx && styles.altChipActive]}
+                  onPress={() => selectRoute(i)}
+                >
+                  <Text style={[styles.altChipText, i === selectedRouteIdx && styles.altChipTextActive]}>
+                    {(option.distanceMeters / 1000).toFixed(0)} {t('map.routeKm')} · {formatDuration(option.durationSeconds, t)}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
         </View>
       )}
 
@@ -818,8 +1094,6 @@ const styles = StyleSheet.create({
   map: { flex: 1 },
   topBar: { position: 'absolute', left: 12, zIndex: 10 },
   webFilterBar: { padding: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee', alignItems: 'flex-start' },
-  marker: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  markerIcon: { fontSize: 24 },
   countBadge: { position: 'absolute', top: 60, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   offlineBadge: { position: 'absolute', right: 12, backgroundColor: 'rgba(100,116,139,0.85)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   routeFab: {
@@ -842,21 +1116,55 @@ const styles = StyleSheet.create({
   zoomBtn: { height: 44, alignItems: 'center', justifyContent: 'center' },
   zoomBtnText: { fontSize: 22, fontWeight: '600', color: '#015197', lineHeight: 24 },
   zoomDivider: { height: 1, backgroundColor: '#E2E8F0' },
-  routeHint: {
-    position: 'absolute', left: 12, right: 76, backgroundColor: 'rgba(1,81,151,0.92)',
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
+  // Route panel — sits over the filter/badge row while routing is on, which
+  // is deliberate: those controls aren't what you're doing right now.
+  routePanel: {
+    position: 'absolute', left: 12, right: 12, backgroundColor: '#fff',
+    borderRadius: 14, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 8,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 8, elevation: 6,
   },
-  routeHintRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  routeHintText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  routePanelHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
+  routePanelTitle: { flex: 1, fontSize: 15, fontWeight: '800', color: '#0F172A' },
+  routePanelHeadBtns: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  stopScroll: { maxHeight: 210 },
+  stopRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingVertical: 7, paddingHorizontal: 6, borderRadius: 10,
+    borderWidth: 1.5, borderColor: 'transparent',
+  },
+  stopRowArmed: { backgroundColor: '#EFF6FF', borderColor: '#015197' },
+  stopBadge: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  stopBadgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  stopLabel: { flex: 1, fontSize: 13, fontWeight: '600', color: '#1E293B' },
+  stopLabelEmpty: { color: '#94A3B8', fontWeight: '500' },
+  addStopBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 6 },
+  addStopText: { fontSize: 13, fontWeight: '700', color: '#015197' },
+  stopHint: { fontSize: 11, color: '#94A3B8', paddingVertical: 8, paddingHorizontal: 6 },
+  stopPin: {
+    width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: '#fff',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.3, shadowRadius: 3, elevation: 4,
+  },
+  stopPinText: { color: '#fff', fontSize: 12, fontWeight: '800' },
+
   routeResult: {
     position: 'absolute', left: 12, right: 76, backgroundColor: '#fff',
     borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5,
   },
-  routeResultText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a', flex: 1 },
-  routeResultBtns: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  routeResultMain: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  routeResultFigures: { flex: 1 },
+  routeResultText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
+  routeLegText: { fontSize: 11, color: '#64748B', marginTop: 2 },
   routeResetText: { fontSize: 16, color: '#94A3B8', fontWeight: '700', paddingLeft: 4 },
+  altRow: { flexDirection: 'row', gap: 8, paddingTop: 8 },
+  altChip: {
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14,
+    backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: 'transparent',
+  },
+  altChipActive: { backgroundColor: '#EFF6FF', borderColor: '#015197' },
+  altChipText: { fontSize: 11, fontWeight: '700', color: '#64748B' },
+  altChipTextActive: { color: '#015197' },
   locateFabActive: { backgroundColor: '#015197' },
   regionsBadge: { position: 'absolute', right: 12, backgroundColor: 'rgba(100,116,139,0.85)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   sheetBackdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.45)', justifyContent: 'flex-end' },

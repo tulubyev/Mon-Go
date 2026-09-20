@@ -61,8 +61,6 @@
     "reset": "重置",
     "objects": "个地点",
     "route": "导航",
-    "routeTapFrom": "在地图上点击起点",
-    "routeTapTo": "在地图上点击终点",
     "routeError": "未找到路线 — 需要网络连接",
     "routeKm": "公里",
     "routeMin": "分钟",
@@ -130,7 +128,14 @@
     "regionDownloaded": "已下载",
     "regionDownloading": "下载中",
     "regionApprox": "≈",
-    "regionNoData": "地区列表不可用"
+    "regionNoData": "地区列表不可用",
+    "routeMyLocation": "我的位置",
+    "routePickOnMap": "在地图上选点",
+    "routeAddStop": "添加途经点",
+    "routeMaxStops": "无法再添加途经点",
+    "routeRemoveStop": "删除途经点",
+    "routeMoveUp": "上移",
+    "routeMoveDown": "下移"
   },
   "phrases": {
     "title": "蒙古语短语",

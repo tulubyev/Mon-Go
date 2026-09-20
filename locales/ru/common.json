@@ -61,8 +61,6 @@
     "reset": "Сброс",
     "objects": "объектов",
     "route": "Маршрут",
-    "routeTapFrom": "Укажите точку отправления на карте",
-    "routeTapTo": "Укажите точку прибытия на карте",
     "routeError": "Маршрут не найден — нужна связь с интернетом",
     "routeKm": "км",
     "routeMin": "мин",
@@ -130,7 +128,14 @@
     "regionDownloaded": "Скачано",
     "regionDownloading": "Загрузка",
     "regionApprox": "≈",
-    "regionNoData": "Список регионов недоступен"
+    "regionNoData": "Список регионов недоступен",
+    "routeMyLocation": "Моё местоположение",
+    "routePickOnMap": "Укажите точку на карте",
+    "routeAddStop": "Добавить точку в пути",
+    "routeMaxStops": "Больше точек добавить нельзя",
+    "routeRemoveStop": "Убрать точку",
+    "routeMoveUp": "Выше",
+    "routeMoveDown": "Ниже"
   },
   "phrases": {
     "title": "Монгольские фразы",

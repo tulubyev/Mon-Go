@@ -61,8 +61,6 @@
     "reset": "Reset",
     "objects": "places",
     "route": "Directions",
-    "routeTapFrom": "Tap the start point on the map",
-    "routeTapTo": "Tap the destination on the map",
     "routeError": "No route found — needs an internet connection",
     "routeKm": "km",
     "routeMin": "min",
@@ -130,7 +128,14 @@
     "regionDownloaded": "Downloaded",
     "regionDownloading": "Downloading",
     "regionApprox": "≈",
-    "regionNoData": "Region list unavailable"
+    "regionNoData": "Region list unavailable",
+    "routeMyLocation": "My location",
+    "routePickOnMap": "Pick a point on the map",
+    "routeAddStop": "Add a stop along the way",
+    "routeMaxStops": "No more stops can be added",
+    "routeRemoveStop": "Remove stop",
+    "routeMoveUp": "Move up",
+    "routeMoveDown": "Move down"
   },
   "phrases": {
     "title": "Mongolian Phrases",

@@ -37,10 +37,27 @@ export interface POI {
   description_source?: string | null;
 }
 
-export interface RouteResult {
+export interface RouteLeg {
+  distanceMeters: number;
+  durationSeconds: number;
+}
+
+export interface RouteOption {
   distanceMeters: number;
   durationSeconds: number;
   geometry: { type: 'LineString'; coordinates: [number, number][] };
+  /** One leg per consecutive pair of stops. Two stops means a single leg. */
+  legs?: RouteLeg[];
+}
+
+/**
+ * GET /api/route. The top-level figures describe the best route and are what
+ * older builds read; `routes` carries every option the router returned —
+ * several only for a two-stop query, since OSRM does not offer alternatives
+ * once there are stops in between.
+ */
+export interface RouteResult extends RouteOption {
+  routes?: RouteOption[];
 }
 
 /** Row shape returned by GET /api/wiki/articles — flat per-locale columns. */
@@ -179,6 +196,13 @@ const DEFAULT_TIMEOUT_MS = 15000;
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+  // A caller-supplied signal (the map re-plans a route while the previous
+  // request is still in flight) can't just be passed through — the timeout
+  // above owns `signal` on the fetch — so chain it onto the same controller.
+  if (options?.signal) {
+    if (options.signal.aborted) controller.abort();
+    else options.signal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
   let response: Response;
   try {
     response = await fetch(`${BASE_URL}${path}`, {
@@ -256,11 +280,18 @@ export const api = {
     return request<POI[]>(`/api/poi?${params.toString()}`);
   },
 
-  // Basic point-to-point routing (car, no turn-by-turn) — see TMB/route-routes.js.
+  // Multi-stop routing (car, no turn-by-turn) — see TMB/route-routes.js.
   // Requires connectivity: this proxies to a self-hosted OSRM instance, unlike
   // the offline-capable map/POI browsing above.
-  getRoute: (from: { lat: number; lng: number }, to: { lat: number; lng: number }) =>
-    request<RouteResult>(`/api/route?from=${from.lat},${from.lng}&to=${to.lat},${to.lng}`),
+  //
+  // Stops go out as repeated `point` parameters rather than one separated
+  // list: a raw ';' does not survive Traefik, and relying on the client to
+  // percent-encode a separator is the kind of thing that breaks silently.
+  getRoute: (stops: { lat: number; lng: number }[], signal?: AbortSignal) =>
+    request<RouteResult>(
+      `/api/route?${stops.map(s => `point=${s.lat},${s.lng}`).join('&')}`,
+      signal ? { signal } : undefined,
+    ),
 
   stt: (audioBase64: string, lang = 'mn', mime = 'audio/m4a') =>
     request<{ text: string }>('/api/stt', {

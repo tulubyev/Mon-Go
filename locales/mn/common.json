@@ -61,8 +61,6 @@
     "reset": "Цэвэрлэх",
     "objects": "объект",
     "route": "Чиглэл",
-    "routeTapFrom": "Газрын зураг дээр эхлэх цэгээ дарна уу",
-    "routeTapTo": "Газрын зураг дээр очих цэгээ дарна уу",
     "routeError": "Маршрут олдсонгүй — интернэт холболт хэрэгтэй",
     "routeKm": "км",
     "routeMin": "мин",
@@ -130,7 +128,14 @@
     "regionDownloaded": "Татагдсан",
     "regionDownloading": "Татаж байна",
     "regionApprox": "≈",
-    "regionNoData": "Бүс нутгийн жагсаалт байхгүй"
+    "regionNoData": "Бүс нутгийн жагсаалт байхгүй",
+    "routeMyLocation": "Миний байршил",
+    "routePickOnMap": "Газрын зураг дээр цэг сонгоно уу",
+    "routeAddStop": "Замын цэг нэмэх",
+    "routeMaxStops": "Илүү цэг нэмэх боломжгүй",
+    "routeRemoveStop": "Цэг устгах",
+    "routeMoveUp": "Дээш",
+    "routeMoveDown": "Доош"
   },
   "phrases": {
     "title": "Монгол хэллэгүүд",
