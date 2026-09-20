@@ -58,6 +58,11 @@ export interface WikiDbArticle {
   summary_zh?: string;
   summary_mn?: string;
   image_url?: string;
+  // GET /api/wiki/articles is a SELECT * — the attribution and the source page
+  // come back with every row and the licence on the Commons photos requires
+  // the credit to be shown wherever the image is.
+  image_attribution?: string | null;
+  source_url?: string | null;
   read_min?: number;
   created_at?: string;
 }

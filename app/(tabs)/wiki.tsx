@@ -1,11 +1,11 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  StyleSheet, ScrollView, Pressable, Text, View,
+  StyleSheet, ScrollView, Pressable, Text, View, Image, useWindowDimensions,
   Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,6 +25,16 @@ const COLOR_OPTIONS = [
   '#10B981', '#A855F7', '#F97316', '#EF4444', '#0EA5E9',
   '#8B5CF6', '#06B6D4', '#EC4899', '#015197', '#64748B',
 ];
+
+/** Fisher-Yates on a copy — the caller's array is left alone. */
+function shuffled<T>(list: T[]): T[] {
+  const out = list.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
 
 /** DB rows carry flat *_ru/_en/_zh/_mn columns; normalise them into the static shape. */
 function dbRowToArticle(row: WikiDbArticle): WikiArticle {
@@ -48,6 +58,9 @@ function dbRowToArticle(row: WikiDbArticle): WikiArticle {
       mn: row.summary_mn || row.summary_ru || '',
     },
     body: {},
+    imageUrl: row.image_url || null,
+    imageAttribution: row.image_attribution || null,
+    sourceUrl: row.source_url || null,
   };
 }
 
@@ -56,6 +69,14 @@ export default function WikiScreen() {
   const lang = (i18n.language as WikiLocale) || 'ru';
   const qc = useQueryClient();
   const tabBarHeight = useBottomTabBarHeight();
+  const { width: winW, height: winH } = useWindowDimensions();
+
+  // Picture boxes are sized from the real screen, not a hardcoded height, and
+  // the images inside them use resizeMode="contain" so the whole frame is
+  // visible — most of these are portraits from Wikimedia Commons and a
+  // "cover" crop cut people's heads off.
+  const cardImageHeight = Math.round(Math.min(winW * 0.55, winH * 0.30));
+  const readerImageHeight = Math.round(Math.min(winW * 0.75, winH * 0.42));
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedDynamic, setSelectedDynamic] = useState<WikiArticle | null>(null);
@@ -68,10 +89,17 @@ export default function WikiScreen() {
     staleTime: 60_000,
   });
 
+  // Re-shuffled every time the tab gains focus: the endpoint returns
+  // newest-first and the static articles were always appended last, so the
+  // same few cards sat on top and everything below was rarely opened.
+  const [shuffleSeed, setShuffleSeed] = useState(0);
+  useFocusEffect(useCallback(() => { setShuffleSeed(n => n + 1); }, []));
+
   const allArticles = useMemo(() => {
     const dyn = (dbArticles ?? []).map(dbRowToArticle);
-    return [...dyn, ...WIKI_ARTICLES];
-  }, [dbArticles]);
+    return shuffled([...dyn, ...WIKI_ARTICLES]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dbArticles, shuffleSeed]);
 
   // Community articles may introduce categories the static list doesn't know about.
   const filters = useMemo(() => {
@@ -178,8 +206,20 @@ export default function WikiScreen() {
                 )}
               </View>
             </View>
+            {article.imageUrl ? (
+              <View style={styles.cardImageWrap}>
+                <Image
+                  source={{ uri: article.imageUrl }}
+                  style={[styles.cardImage, { height: cardImageHeight }]}
+                  resizeMode="contain"
+                />
+              </View>
+            ) : null}
             <Text style={styles.cardTitle}>{article.title[lang]}</Text>
             <Text style={styles.cardSummary}>{article.summary[lang]}</Text>
+            {article.imageUrl && article.imageAttribution ? (
+              <Text style={styles.imageCredit}>{article.imageAttribution}</Text>
+            ) : null}
             <Text style={[styles.readMore, { color: article.categoryColor }]}>
               {t('wiki.readMore')} →
             </Text>
@@ -191,6 +231,7 @@ export default function WikiScreen() {
       <DynamicReader
         article={selectedDynamic}
         lang={lang}
+        imageHeight={readerImageHeight}
         onClose={() => setSelectedDynamic(null)}
       />
       <SubmitModal
@@ -204,8 +245,8 @@ export default function WikiScreen() {
   );
 }
 
-function DynamicReader({ article, lang, onClose }: {
-  article: WikiArticle | null; lang: WikiLocale; onClose: () => void;
+function DynamicReader({ article, lang, imageHeight, onClose }: {
+  article: WikiArticle | null; lang: WikiLocale; imageHeight: number; onClose: () => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -228,8 +269,20 @@ function DynamicReader({ article, lang, onClose }: {
             </View>
           </View>
           <ScrollView contentContainerStyle={styles.readerBody} showsVerticalScrollIndicator={false}>
+            {article.imageUrl ? (
+              <View style={styles.readerImageWrap}>
+                <Image
+                  source={{ uri: article.imageUrl }}
+                  style={[styles.readerImage, { height: imageHeight }]}
+                  resizeMode="contain"
+                />
+              </View>
+            ) : null}
             <Text style={styles.readerTitle}>{article.title[lang]}</Text>
             <Text style={styles.readerText}>{article.summary[lang]}</Text>
+            {article.imageUrl && article.imageAttribution ? (
+              <Text style={styles.imageCredit}>{article.imageAttribution}</Text>
+            ) : null}
           </ScrollView>
         </SafeAreaView>
       )}
@@ -502,6 +555,9 @@ const styles = StyleSheet.create({
   readTime: { fontSize: 11, color: '#94A3B8' },
   communityTag: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   communityTagText: { fontSize: 10, color: '#64748B' },
+  cardImageWrap: { borderRadius: 12, overflow: 'hidden', backgroundColor: '#F1F5F9', marginBottom: 12 },
+  cardImage: { width: '100%' },
+  imageCredit: { fontSize: 10, color: '#94A3B8', marginTop: 8, lineHeight: 14 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: '#1E293B', marginBottom: 6 },
   cardSummary: { fontSize: 13, color: '#64748B', lineHeight: 19 },
   readMore: { fontSize: 13, fontWeight: '600', marginTop: 12 },
@@ -512,6 +568,8 @@ const styles = StyleSheet.create({
   readerCat: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 },
   readerCatText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   readerBody: { padding: 20 },
+  readerImageWrap: { borderRadius: 14, overflow: 'hidden', backgroundColor: '#F1F5F9', marginBottom: 16 },
+  readerImage: { width: '100%' },
   readerTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', marginBottom: 16, lineHeight: 32 },
   readerText: { fontSize: 15, lineHeight: 25, color: '#334155' },
 

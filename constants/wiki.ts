@@ -11,6 +11,11 @@ export interface WikiArticle {
   /** Full body, rendered on the article screen. Missing locales fall back to ru. */
   body: Partial<Record<WikiLocale, string>>;
   dynamic?: boolean;
+  /** Set on DB-backed articles that carry a picture (Wikimedia Commons etc). */
+  imageUrl?: string | null;
+  /** Credit line that must be displayed next to imageUrl. */
+  imageAttribution?: string | null;
+  sourceUrl?: string | null;
 }
 
 /** Category keys are stable ids; labels live in WIKI_CATEGORIES. */
