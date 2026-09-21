@@ -280,8 +280,11 @@ export const api = {
   // point (server-side, see TMB bot.js) instead of the whole country — the
   // map's first paint uses this for a fast "nearby" chunk before falling
   // back to a full unfiltered fetch for everything else.
+  // taxonomy=2 tells the server this build understands `taxon` and `rank` —
+  // without it the response leaves out the groups that did not exist before
+  // (shops), so older installs keep the dataset their filter can express.
   getPOI: (category = 'all', near?: { lat: number; lng: number; radiusKm: number }) => {
-    const params = new URLSearchParams({ category });
+    const params = new URLSearchParams({ category, taxonomy: '2' });
     if (near) {
       params.set('lat', String(near.lat));
       params.set('lng', String(near.lng));
