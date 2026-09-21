@@ -59,7 +59,6 @@
     "filters": "Filters",
     "selectAll": "All",
     "reset": "Reset",
-    "objects": "places",
     "route": "Directions",
     "routeError": "No route found — needs an internet connection",
     "routeKm": "km",

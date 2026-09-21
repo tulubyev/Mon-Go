@@ -621,17 +621,13 @@ function MapNativeScreen() {
         style={[styles.topBar, { top: insets.top + 8 }]}
       />
 
-      {/* POI count badge — the map itself renders immediately regardless of
-          POI load state (no full-screen blocking overlay anymore); this
-          corner pill just swaps its own content to a spinner while loading,
-          same spot, without covering or disabling the map underneath. */}
-      {loading ? (
+      {/* Loading pill — the map renders immediately regardless of POI load
+          state (no full-screen blocking overlay); this corner pill shows the
+          fetch is still running and disappears once it lands. It used to keep
+          sitting there afterwards with an object count nobody needed. */}
+      {loading && (
         <View style={[styles.countBadge, { top: insets.top + 60 }]} pointerEvents="none">
           <ActivityIndicator size="small" color="#015197" />
-        </View>
-      ) : (
-        <View style={[styles.countBadge, { top: insets.top + 60 }]}>
-          <Text style={styles.countText}>{filtered.length} {t('map.objects')}</Text>
         </View>
       )}
 
@@ -1179,7 +1175,6 @@ const styles = StyleSheet.create({
   sheetCloseText: { fontSize: 14, fontWeight: '700', color: '#334155' },
   offlineBadgeReady: { backgroundColor: 'rgba(21,128,61,0.85)' },
   offlineBadgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  countText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   // InfoCard — wrapper spans full width to center the capped inner card (iPad:
   // absolute + left:0/right:0 would otherwise force full-bleed width regardless
   // of alignSelf on the card itself).
