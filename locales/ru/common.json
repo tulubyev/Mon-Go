@@ -134,7 +134,9 @@
     "routeMaxStops": "Больше точек добавить нельзя",
     "routeRemoveStop": "Убрать точку",
     "routeMoveUp": "Выше",
-    "routeMoveDown": "Ниже"
+    "routeMoveDown": "Ниже",
+    "routeByCar": "На машине",
+    "routeOnFoot": "Пешком"
   },
   "phrases": {
     "title": "Монгольские фразы",

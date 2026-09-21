@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api, POI, RouteOption } from '@/services/api';
+import { api, POI, RouteOption, RouteProfile } from '@/services/api';
 import { MAX_CARD_WIDTH } from '@/constants/Layout';
 import { useOfflineMapPack } from '@/hooks/useOfflineMapPack';
 import { useOfflineRegionPacks } from '@/hooks/useOfflineRegionPacks';
@@ -152,6 +152,7 @@ function MapNativeScreen() {
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const [routeOptions, setRouteOptions] = useState<RouteOption[]>([]);
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0);
+  const [routeProfile, setRouteProfile] = useState<RouteProfile>('car');
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState(false);
   const [locatingUser, setLocatingUser] = useState(false);
@@ -215,6 +216,7 @@ function MapNativeScreen() {
       geometry: { type: 'Point' as const, coordinates: [p.lng, p.lat] },
       properties: {
         poiId: p.id,
+        name: p.name,
         color: CATEGORY_COLOR[p.category] || '#015197',
         icon: spriteIcon(p.category),
       },
@@ -294,7 +296,7 @@ function MapNativeScreen() {
     const ctrl = new AbortController();
     setRouteLoading(true);
     setRouteError(false);
-    api.getRoute(coords.map(c => ({ lat: c[1], lng: c[0] })), ctrl.signal)
+    api.getRoute(coords.map(c => ({ lat: c[1], lng: c[0] })), routeProfile, ctrl.signal)
       .then(res => {
         if (cancelled) return;
         const options = res.routes?.length ? res.routes : [res];
@@ -306,7 +308,7 @@ function MapNativeScreen() {
       .finally(() => { if (!cancelled) setRouteLoading(false); });
     return () => { cancelled = true; ctrl.abort(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stopsKey]);
+  }, [stopsKey, routeProfile]);
 
   const legLines = useMemo(() => {
     if (!route?.legs || route.legs.length < 2) return [];
@@ -521,7 +523,11 @@ function MapNativeScreen() {
           data={poiCollection}
           cluster
           clusterRadius={55}
-          clusterMaxZoom={13}
+          // Clusters used to hold until z13, so at every zoom people actually
+          // pan around at, the map was blue circles with numbers and the
+          // category emoji never appeared. Individual icons now take over
+          // three zoom levels earlier.
+          clusterMaxZoom={10}
           onPress={handlePoiPress}
         >
           <Layer
@@ -569,7 +575,7 @@ function MapNativeScreen() {
             filter={['!', ['has', 'point_count']]}
             style={{
               iconImage: ['get', 'icon'],
-              iconSize: 0.4,
+              iconSize: 0.5,
               // Clustering already thins density down to individual pins by
               // clusterMaxZoom — without these, MapLibre's collision engine
               // silently drops any icon that overlaps a neighbour, which at
@@ -577,6 +583,29 @@ function MapNativeScreen() {
               // the colour halo showing (looked like plain dots).
               iconAllowOverlap: true,
               iconIgnorePlacement: true,
+            }}
+          />
+          {/* Names under the icons. Separate layer because a zoom-dependent
+              text-field can't be combined with a data-driven one in a single
+              layout property — the layer's own minzoom does the job (the prop
+              is lowercase in v11; minZoomLevel is silently ignored).
+              Overlapping labels are dropped (no allowOverlap here) so dense
+              areas stay readable; the icons themselves always stay. */}
+          <Layer
+            id="poi-name"
+            type="symbol"
+            minzoom={13}
+            filter={['!', ['has', 'point_count']]}
+            style={{
+              textField: ['get', 'name'],
+              textFont: ['Noto Sans Regular'],
+              textSize: 12,
+              textOffset: [0, 1.35],
+              textAnchor: 'top',
+              textMaxWidth: 9,
+              textColor: '#1F2937',
+              textHaloColor: '#FFFFFF',
+              textHaloWidth: 1.6,
             }}
           />
         </GeoJSONSource>
@@ -682,6 +711,22 @@ function MapNativeScreen() {
           <View style={styles.routePanelHead}>
             <Text style={styles.routePanelTitle}>{t('map.route')}</Text>
             {locatingUser && <ActivityIndicator size="small" color="#015197" />}
+            <View style={styles.profileSwitch}>
+              {(['car', 'foot'] as RouteProfile[]).map(p => (
+                <Pressable
+                  key={p}
+                  style={[styles.profileBtn, routeProfile === p && styles.profileBtnActive]}
+                  onPress={() => setRouteProfile(p)}
+                  accessibilityLabel={t(p === 'car' ? 'map.routeByCar' : 'map.routeOnFoot')}
+                >
+                  <Ionicons
+                    name={p === 'car' ? 'car' : 'walk'}
+                    size={16}
+                    color={routeProfile === p ? '#fff' : '#64748B'}
+                  />
+                </Pressable>
+              ))}
+            </View>
             <View style={styles.routePanelHeadBtns}>
               <Pressable onPress={reverseStops} hitSlop={8} accessibilityLabel={t('map.routeSwap')}>
                 <Ionicons name="swap-vertical" size={18} color="#64748B" />
@@ -1122,6 +1167,9 @@ const styles = StyleSheet.create({
   routePanelHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
   routePanelTitle: { flex: 1, fontSize: 15, fontWeight: '800', color: '#0F172A' },
   routePanelHeadBtns: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  profileSwitch: { flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 9, padding: 2, gap: 2 },
+  profileBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 7 },
+  profileBtnActive: { backgroundColor: '#015197' },
   stopScroll: { maxHeight: 210 },
   stopRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,

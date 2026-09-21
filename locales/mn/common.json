@@ -134,7 +134,9 @@
     "routeMaxStops": "Илүү цэг нэмэх боломжгүй",
     "routeRemoveStop": "Цэг устгах",
     "routeMoveUp": "Дээш",
-    "routeMoveDown": "Доош"
+    "routeMoveDown": "Доош",
+    "routeByCar": "Машинаар",
+    "routeOnFoot": "Явган"
   },
   "phrases": {
     "title": "Монгол хэллэгүүд",

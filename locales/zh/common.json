@@ -134,7 +134,9 @@
     "routeMaxStops": "无法再添加途经点",
     "routeRemoveStop": "删除途经点",
     "routeMoveUp": "上移",
-    "routeMoveDown": "下移"
+    "routeMoveDown": "下移",
+    "routeByCar": "驾车",
+    "routeOnFoot": "步行"
   },
   "phrases": {
     "title": "蒙古语短语",

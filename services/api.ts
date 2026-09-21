@@ -58,7 +58,11 @@ export interface RouteOption {
  */
 export interface RouteResult extends RouteOption {
   routes?: RouteOption[];
+  /** Echoes which graph answered — 'car' by default, 'foot' for walking. */
+  profile?: RouteProfile;
 }
+
+export type RouteProfile = 'car' | 'foot';
 
 /** Row shape returned by GET /api/wiki/articles — flat per-locale columns. */
 export interface WikiDbArticle {
@@ -287,9 +291,13 @@ export const api = {
   // Stops go out as repeated `point` parameters rather than one separated
   // list: a raw ';' does not survive Traefik, and relying on the client to
   // percent-encode a separator is the kind of thing that breaks silently.
-  getRoute: (stops: { lat: number; lng: number }[], signal?: AbortSignal) =>
+  getRoute: (
+    stops: { lat: number; lng: number }[],
+    profile: RouteProfile = 'car',
+    signal?: AbortSignal,
+  ) =>
     request<RouteResult>(
-      `/api/route?${stops.map(s => `point=${s.lat},${s.lng}`).join('&')}`,
+      `/api/route?${stops.map(s => `point=${s.lat},${s.lng}`).join('&')}&profile=${profile}`,
       signal ? { signal } : undefined,
     ),
 

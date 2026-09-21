@@ -134,7 +134,9 @@
     "routeMaxStops": "No more stops can be added",
     "routeRemoveStop": "Remove stop",
     "routeMoveUp": "Move up",
-    "routeMoveDown": "Move down"
+    "routeMoveDown": "Move down",
+    "routeByCar": "By car",
+    "routeOnFoot": "On foot"
   },
   "phrases": {
     "title": "Mongolian Phrases",
