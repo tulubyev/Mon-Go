@@ -23,36 +23,58 @@ export default function MapScreen() {
 }
 
 // ─── Category filter config ───────────────────────────────────────────────────
-// No 'all' pseudo-entry — "all visible" is just every real category selected at
+// No 'all' pseudo-entry — "all visible" is just every real taxon selected at
 // once in the multi-select control below (MapLayersControl), same model as
 // BaikalLove's map filter dropdown.
-// Toggle set — these are the categories the OSM importer (TMB
-// scripts/import-osm-poi.js) actually writes. museum/restaurant/cafe/hotel
-// etc. from the earlier hand-curated data collapse into these buckets, so
-// they were dead toggles once the country-wide import landed.
-const POI_CATEGORIES: Array<{ key: string; icon: string; color: string }> = [
-  { key: 'sight',         icon: '👁️', color: '#10B981' },
-  { key: 'food',          icon: '🍽️', color: '#EF4444' },
-  { key: 'accommodation', icon: '🏨', color: '#0EA5E9' },
+//
+// These are the 12 taxa of TMB/scripts/osm/taxonomy.json, not the seven
+// buckets the importer used to write. The old ones mixed things that have
+// nothing in common: "safety" held pharmacies, banks, hospitals, ATMs and
+// police stations at once, and "sight" put 1083 mountain peaks next to 70
+// museums. `rank` comes from the same file.
+const POI_TAXA: Array<{ key: string; icon: string; color: string }> = [
+  { key: 'view',          icon: '🔭', color: '#0EA5E9' },
+  { key: 'nature',        icon: '⛰️', color: '#10B981' },
+  { key: 'culture',       icon: '🏛️', color: '#A855F7' },
   { key: 'camp',          icon: '🏕️', color: '#65A30D' },
-  { key: 'transport',     icon: '🚉', color: '#64748B' },
-  { key: 'safety',        icon: '🏥', color: '#DC2626' },
+  { key: 'accommodation', icon: '🏨', color: '#0284C7' },
+  { key: 'food',          icon: '🍽️', color: '#EF4444' },
+  { key: 'shop',          icon: '🛒', color: '#EC4899' },
   { key: 'fuel',          icon: '⛽', color: '#F59E0B' },
+  { key: 'health',        icon: '🏥', color: '#DC2626' },
+  { key: 'money',         icon: '🏦', color: '#14B8A6' },
+  { key: 'service',       icon: '🚻', color: '#64748B' },
+  { key: 'transport',     icon: '🚉', color: '#475569' },
 ];
 
-// Dot colour for every category we might still see, toggle or not.
-const CATEGORY_COLOR: Record<string, string> = {
-  sight: '#10B981', food: '#EF4444', accommodation: '#0EA5E9', camp: '#65A30D',
-  transport: '#64748B', safety: '#DC2626', fuel: '#F59E0B',
-  museum: '#8B5CF6', restaurant: '#EF4444', cafe: '#F97316', hotel: '#0EA5E9',
-  market: '#EC4899', recreation: '#06B6D4', user: '#015197',
+const TAXON_COLOR: Record<string, string> = Object.fromEntries(POI_TAXA.map(x => [x.key, x.color]));
+
+// Rows imported before the taxonomy existed, and anything a backfill missed,
+// arrive with only the old category. Map it rather than dropping the POI.
+const LEGACY_TO_TAXON: Record<string, string> = {
+  sight: 'view', camp: 'camp', accommodation: 'accommodation', transport: 'transport',
+  fuel: 'fuel', food: 'food', safety: 'service',
+  museum: 'culture', restaurant: 'food', cafe: 'food', hotel: 'accommodation',
+  market: 'shop', recreation: 'nature', user: 'view',
 };
+const taxonOf = (poi: POI) => poi.taxon || LEGACY_TO_TAXON[poi.category] || 'view';
+// Rank decides the zoom a POI shows up at; an unranked row counts as "useful",
+// so it is neither permanently on screen nor invisible.
+const rankOf = (poi: POI) => poi.rank ?? 2;
+
+// How much detail each zoom level earns: below z9 landmarks only, so the
+// country view is monasteries and viewpoints instead of 836 pharmacies; from
+// z12 everything.
+const rankLimitForZoom = (zoom: number) => (zoom < 9 ? 1 : zoom < 12 ? 2 : 3);
 
 // Sprite image name per category (see TMB scripts/gen-poi-sprite.js). The
 // sheet only has the 7 real importer categories, so anything else falls back
 // to the sight icon.
-const SPRITE_NAMES = new Set(['sight', 'food', 'accommodation', 'camp', 'transport', 'safety', 'fuel']);
-const spriteIcon = (category: string) => (SPRITE_NAMES.has(category) ? category : 'sight');
+const SPRITE_NAMES = new Set([
+  'view', 'nature', 'culture', 'camp', 'accommodation', 'food',
+  'shop', 'fuel', 'health', 'money', 'service', 'transport',
+]);
+const spriteIcon = (taxon: string) => (SPRITE_NAMES.has(taxon) ? taxon : 'view');
 
 // "12 ч 12 мин" instead of the old "732 мин" — OSRM durations for cross-
 // country drives run to 10+ hours.
@@ -119,10 +141,10 @@ function mapsOptions(lat: number, lng: number, t: (k: string) => string) {
 // ─── Native map (iOS / Android) ───────────────────────────────────────────────
 function MapNativeScreen() {
   const { t, i18n } = useTranslation();
-  const CATEGORIES: MapCategory[] = POI_CATEGORIES.map(c => ({ ...c, label: t(`map.categories.${c.key}`) }));
+  const CATEGORIES: MapCategory[] = POI_TAXA.map(c => ({ ...c, label: t(`map.taxa.${c.key}`) }));
   const [pois, setPois] = useState<POI[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set(POI_CATEGORIES.map(c => c.key)));
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set(POI_TAXA.map(c => c.key)));
   const [selected, setSelected] = useState<POI | null>(null);
   const [userLocationVisible, setUserLocationVisible] = useState(false);
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null); // [lng,lat]
@@ -200,7 +222,13 @@ function MapNativeScreen() {
     return () => { cancelled = true; };
   }, []);
 
-  const filtered = pois.filter(p => activeFilters.has(p.category));
+  // Zoom is bucketed to the rank it allows, so panning around within one zoom
+  // level doesn't rebuild the feature collection on every frame.
+  const rankLimit = rankLimitForZoom(zoom);
+  const filtered = useMemo(
+    () => pois.filter(p => activeFilters.has(taxonOf(p)) && rankOf(p) <= rankLimit),
+    [pois, activeFilters, rankLimit],
+  );
 
   const cameraRef = useRef<any>(null);
   const poiSourceRef = useRef<any>(null);
@@ -217,8 +245,8 @@ function MapNativeScreen() {
       properties: {
         poiId: p.id,
         name: p.name,
-        color: CATEGORY_COLOR[p.category] || '#015197',
-        icon: spriteIcon(p.category),
+        color: TAXON_COLOR[taxonOf(p)] || '#015197',
+        icon: spriteIcon(taxonOf(p)),
       },
     })),
   }), [filtered]);
@@ -941,8 +969,8 @@ function InfoCard({ poi, onClose, bottomOffset, userCoords, onRoute }: {
   // What the place IS (museum / peak / pharmacy…) beats the 7-bucket filter
   // category; fall back to the category label when the importer had no kind.
   const kindLabel = poi.kind
-    ? t(`map.kinds.${poi.kind}`, { defaultValue: t(`map.categories.${poi.category}`, { defaultValue: poi.category }) })
-    : t(`map.categories.${poi.category}`, { defaultValue: poi.category });
+    ? t(`map.kinds.${poi.kind}`, { defaultValue: t(`map.taxa.${taxonOf(poi)}`, { defaultValue: poi.category }) })
+    : t(`map.taxa.${taxonOf(poi)}`, { defaultValue: poi.category });
   const distance = userCoords ? distanceKm(userCoords, poi.lat, poi.lng) : null;
   const distanceText = distance == null ? null : distance < 1 ? `${Math.round(distance * 1000)} м` : `${distance.toFixed(1)} км`;
   const wiki = poi.wikipedia ? wikipediaUrl(poi.wikipedia) : null;
@@ -1090,14 +1118,16 @@ function InfoRow({ icon, text }: { icon: string; text: string }) {
 // ─── Web fallback ─────────────────────────────────────────────────────────────
 function MapWebFallback() {
   const { t } = useTranslation();
-  const CATEGORIES: MapCategory[] = POI_CATEGORIES.map(c => ({ ...c, label: t(`map.categories.${c.key}`) }));
+  const CATEGORIES: MapCategory[] = POI_TAXA.map(c => ({ ...c, label: t(`map.taxa.${c.key}`) }));
   const [pois, setPois] = useState<POI[]>([]);
-  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set(POI_CATEGORIES.map(c => c.key)));
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set(POI_TAXA.map(c => c.key)));
   const [selected, setSelected] = useState<POI | null>(null);
 
   useEffect(() => { api.getPOI('all').then(setPois).catch(() => {}); }, []);
 
-  const filtered = pois.filter(p => activeFilters.has(p.category));
+  const filtered = pois
+    .filter(p => activeFilters.has(taxonOf(p)))
+    .sort((a, b) => rankOf(a) - rankOf(b) || a.name.localeCompare(b.name));
 
   return (
     <View style={styles.container}>

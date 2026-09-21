@@ -30,6 +30,12 @@ export interface POI {
   // tagged with (museum / monastery / peak / hotel / atm …), postal address,
   // and the article a description was sourced from, if any.
   kind?: string | null;
+  // Taxonomy v2 (TMB scripts/osm/taxonomy.json): `taxon` is the group the map
+  // filter shows, `rank` is 1 landmark / 2 useful / 3 everyday and decides the
+  // zoom the POI appears at. Both optional — rows imported before the taxonomy
+  // existed carry only `category`.
+  taxon?: string | null;
+  rank?: number | null;
   address?: string | null;
   email?: string | null;
   wikipedia?: string | null;
