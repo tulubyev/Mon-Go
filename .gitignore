@@ -42,3 +42,10 @@ yarn-error.*
 /android
 credentials.json
 credentials/
+
+# Source material kept next to the app but never shipped inside it: the
+# welcome clips are served from the CDN (see TMB docs/welcome-videos.md), so
+# committing a 15MB mp4 would only inflate the bundle. Office documents that
+# live here for convenience are not part of the app either.
+assets/images/*.mp4
+*.docx
