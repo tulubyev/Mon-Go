@@ -1,12 +1,12 @@
 import { StyleSheet, Pressable, Text, View, Image, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { changeLanguage, getCurrentLanguage } from '@/lib/i18n';
 import { api } from '@/services/api';
-import SequentialVideoBlock, { FALLBACK_CATALOG, buildSeasonalPlaylist, toClip } from '@/components/SequentialVideo';
+import SequentialVideoBlock, { FALLBACK_CATALOG, buildSeasonalPlaylist, clipsForBlock, toClip } from '@/components/SequentialVideo';
 import { useContentManifest } from '@/hooks/useContent';
 
 const LANGUAGES = [
@@ -36,7 +36,16 @@ export default function WelcomeScreen({ onContinue }: { onContinue: () => void }
     staleTime: 10 * 60 * 1000,
     retry: 1,
   });
-  const playlist = buildSeasonalPlaylist(catalog && catalog.length > 0 ? catalog : FALLBACK_CATALOG);
+  // Memoised: SequentialVideoBlock restarts its player whenever the list
+  // identity changes, so a fresh array on every render would rewind the clip.
+  const playlist = useMemo(
+    () => buildSeasonalPlaylist(catalog && catalog.length > 0 ? catalog : FALLBACK_CATALOG),
+    [catalog],
+  );
+  // Each block keeps its own clips (even positions top, odd bottom), so a
+  // block with a single clip loops it instead of cutting to the other one.
+  const topClips = useMemo(() => clipsForBlock(playlist, 0), [playlist]);
+  const bottomClips = useMemo(() => clipsForBlock(playlist, 1), [playlist]);
 
   // Prefetch prepared content here (not used on this screen itself) so the
   // persisted react-query cache already has it by the time the user opens
@@ -63,15 +72,19 @@ export default function WelcomeScreen({ onContinue }: { onContinue: () => void }
       <SafeAreaView style={styles.container}>
         {/* First video block — brand emblem overlay */}
         <View style={styles.videoBlock}>
-          <SequentialVideoBlock playlist={playlist} startIndex={0} />
-          <View style={styles.emblemOverlay} pointerEvents="none">
-            <Image source={require('@/assets/images/logo.jpeg')} style={styles.emblemImage} resizeMode="contain" />
-          </View>
+          <SequentialVideoBlock playlist={topClips} />
+          {/* The top clip is the animated logo itself; the static one only
+              stands in when there is no clip to play. */}
+          {topClips.length === 0 && (
+            <View style={styles.emblemOverlay} pointerEvents="none">
+              <Image source={require('@/assets/images/logo.jpeg')} style={styles.emblemImage} resizeMode="contain" />
+            </View>
+          )}
         </View>
 
         {/* Second video block — server status overlay */}
         <View style={styles.videoBlock}>
-          <SequentialVideoBlock playlist={playlist} startIndex={1} />
+          <SequentialVideoBlock playlist={bottomClips} />
           <ServerStatusOverlay status={serverStatus} onRetry={runCheck} t={t} />
         </View>
 

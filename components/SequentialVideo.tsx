@@ -55,6 +55,12 @@ export function buildSeasonalPlaylist(catalog: Clip[], now: Date = new Date()): 
   return queue.length > 0 ? queue : catalog;
 }
 
+/** Клипы одного блока экрана приветствия: чётные позиции — верхний, нечётные — нижний. */
+export function clipsForBlock(playlist: Clip[], blockIndex: number): Clip[] {
+  const own = playlist.filter((_, i) => i % 2 === blockIndex);
+  return own.length > 0 ? own : playlist;
+}
+
 interface Props {
   playlist: Clip[];
   startIndex?: number;
@@ -65,13 +71,15 @@ export default function SequentialVideoBlock({ playlist, startIndex = 0 }: Props
   const current = playlist[indexRef.current % Math.max(playlist.length, 1)];
 
   const player = useVideoPlayer(current?.uri ?? null, (p) => {
-    p.loop = false;
+    // A single clip loops natively — no replace() round-trip, no flash of
+    // the gradient between passes.
+    p.loop = playlist.length === 1;
     p.muted = true;
     if (current) p.play();
   });
 
   useEventListener(player, 'playToEnd', () => {
-    if (playlist.length === 0) return;
+    if (playlist.length <= 1) return;
     indexRef.current = (indexRef.current + 1) % playlist.length;
     const next = playlist[indexRef.current];
     player.replace(next.uri);
@@ -82,6 +90,7 @@ export default function SequentialVideoBlock({ playlist, startIndex = 0 }: Props
   // fallback render) — reset to the new list's first clip.
   useEffect(() => {
     if (playlist.length === 0) return;
+    player.loop = playlist.length === 1;
     indexRef.current = startIndex % playlist.length;
     player.replace(playlist[indexRef.current].uri);
     player.play();
